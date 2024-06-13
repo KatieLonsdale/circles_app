@@ -145,7 +145,6 @@ RSpec.describe 'Users API', type: :request do
     end
     it 'updates a user with valid attributes' do
       @user[:notification_frequency] = "daily"
-      require 'pry'; binding.pry
 
       @updated_user_attributes = {
         email: @user.email, 
@@ -153,11 +152,11 @@ RSpec.describe 'Users API', type: :request do
         password: @user.password,
         notification_frequency: "live"
       }
-
       put "/api/v0/users/#{@user.id}", headers: @valid_headers, params: @updated_user_attributes
 
       expect(response.status).to eq(204)
-      expect(@user.notification_frequency).to eq("live")
+      updated_user = User.find(@user.id)
+      expect(updated_user.notification_frequency).to eq("live")
     end
 
     it 'sends 404 Not Found if invalid user id is passed in' do
@@ -181,6 +180,7 @@ RSpec.describe 'Users API', type: :request do
 
       expect(response.status).to eq(204)
       expect(User.count).to eq(9)
+      expect(User.find_by(id: user.id)).to eq(nil)
     end
 
     it 'sends 404 Not Found if invalid user id is passed in' do
