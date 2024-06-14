@@ -55,8 +55,8 @@ RSpec.describe 'Circles API', type: :request do
 
       circles.each do |circle|
         current_circle = Circle.find(circle[:id])
-        expect(user[:id]).to eq(current_circle.id)
-        expect(user[:type]).to eq("circle")
+        expect(circle[:id]).to eq(current_circle.id.to_s)
+        expect(circle[:type]).to eq("circle")
         
         attributes = circle[:attributes]
 
@@ -117,12 +117,13 @@ RSpec.describe 'Circles API', type: :request do
 
   describe 'create a circle' do
     it 'creates a circle with valid attributes' do
+      user_id = @users.first.id
       new_circle_attributes = {
-        "user_id" => "1",
+        "user_id" => user_id,
         "name": "College Friends",
         "description": "Friends from college"
       }
-      post "/api/v0/circles",params: new_circle_attributes
+      post "/api/v0/users/#{user_id}/circles",params: new_circle_attributes
 
       expect(response.status).to eq(201)
       expect(Circle.count).to eq(26)
@@ -139,11 +140,12 @@ RSpec.describe 'Circles API', type: :request do
     end
 
     it 'sends 422 Unprocessable Entity if invalid attributes are passed in' do
+      user_id = @users.first.id
       new_circle_attributes = {
-        "user_id" => "1",
+        "user_id" => user_id,
         "name": "College Friends"
       }
-      post "/api/v0/circles", params: new_circle_attributes
+      post "/api/v0/users/#{user_id}/circles", params: new_circle_attributes
 
       expect(response.status).to eq(422)
       expect(Circle.count).to eq(25)
@@ -160,7 +162,7 @@ RSpec.describe 'Circles API', type: :request do
       user = @valid_circle.user
       body = { "password": user.id }
 
-      delete "/api/v0/users/#{user.id}circles/#{@valid_circle.id}", params: body
+      delete "/api/v0/users/#{user.id}/circles/#{@valid_circle.id}", params: body
 
       expect(response.status).to eq(204)
       expect(Circle.count).to eq(24)
