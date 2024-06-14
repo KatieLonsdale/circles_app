@@ -1,5 +1,6 @@
 class User < ApplicationRecord
   has_many :circles, dependent: :destroy
+  has_many :circle_members, dependent: :destroy
 
   enum notification_frequency: { live: 0, hourly: 1, daily: 2 }
 

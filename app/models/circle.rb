@@ -4,6 +4,7 @@ class Circle < ApplicationRecord
   has_many :comments, through: :posts
   has_many :post_user_reactions, through: :posts
   has_many :content, through: :posts
+  has_many :circle_members, dependent: :destroy
 
   validates_presence_of :name
   validates_presence_of :user_id
