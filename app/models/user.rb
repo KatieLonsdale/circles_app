@@ -13,4 +13,14 @@ class User < ApplicationRecord
             format: { with: EMAIL_REGEX, message: "must be a valid email address" }
   validates_presence_of :password
   validates_presence_of :display_name
+
+  def get_all_circles
+    owned_circles = circles
+    circle_members = get_circle_member_circles
+    all_circles = owned_circles + circle_members
+  end
+
+  def get_circle_member_circles
+    Circle.joins(:circle_members).where("circle_members.user_id = ?", self.id)
+  end
 end
