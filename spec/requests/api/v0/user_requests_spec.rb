@@ -32,30 +32,6 @@ RSpec.describe 'Users API', type: :request do
         expect(attributes).to_not have_key(:password_digest)
       end
     end
-
-    xit 'sends a 401 error if no authorization header is provided' do
-      get '/api/v0/users'
-
-      expect(response.status).to eq(401)
-
-      data = JSON.parse(response.body, symbolize_names: true)
-      expect(data).to have_key(:errors)
-      expect(data[:errors][0]).to have_key(:detail)
-      expect(data[:errors][0][:detail])
-      .to eq("Access Denied")
-    end
-
-    xit 'sends a 401 error if invalid authorization header is provided' do
-      invalid_headers = { "Authorization" => "nonono"}
-      response = get '/api/v0/users', headers: invalid_headers
-      expect(response.status).to eq(401)
-
-      data = JSON.parse(response.body, symbolize_names: true)
-      expect(data).to have_key(:errors)
-      expect(data[:errors][0]).to have_key(:detail)
-      expect(data[:errors][0][:detail])
-      .to eq("Access Denied")
-    end
   end
 
   describe 'get one user' do
