@@ -10,14 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_06_09_194121) do
+ActiveRecord::Schema[7.0].define(version: 2024_06_14_191702) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "circle_members", force: :cascade do |t|
+    t.bigint "circle_id", null: false
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["circle_id"], name: "index_circle_members_on_circle_id"
+    t.index ["user_id"], name: "index_circle_members_on_user_id"
+  end
 
   create_table "circles", force: :cascade do |t|
     t.string "name", null: false
     t.bigint "user_id", null: false
-    t.json "members"
     t.string "description", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -85,6 +93,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_06_09_194121) do
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "circle_members", "circles"
+  add_foreign_key "circle_members", "users"
   add_foreign_key "circles", "users"
   add_foreign_key "comment_user_reactions", "comments"
   add_foreign_key "comments", "posts"
