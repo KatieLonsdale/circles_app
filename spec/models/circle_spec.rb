@@ -31,7 +31,7 @@ RSpec.describe Circle, type: :model do
       # create new user to add to circle members
       user = create(:user)
 
-      member_circle.add_member(user)
+      member_circle.add_member(user.id)
 
       member_circle_members = JSON.parse(member_circle.members)
       non_member_circle_members = JSON.parse(non_member_circle.members)
