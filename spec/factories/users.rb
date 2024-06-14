@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :user do
-    id { Faker::Number.number(digits: 10)}
+    id { Faker::Number.number(digits: 5)}
     email { Faker::Internet.email }
     password { BCrypt::Password.create('password') }
     display_name { Faker::Name.name }
