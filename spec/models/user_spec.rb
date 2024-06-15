@@ -18,12 +18,6 @@ RSpec.describe User, type: :model do
   end
 
   describe 'instance methods' do
-    describe 'add_circle' do
-      it 'adds a circle to a user' do
-        # fill out
-      end
-    end
-
     describe 'get_all_circles' do
       it 'gets all circles that a user belongs to or owns' do
         create_list(:circle, 10)
