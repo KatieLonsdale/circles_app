@@ -87,9 +87,9 @@ RSpec.describe 'Circles API', type: :request do
 
   describe 'get one circle' do
     it 'sends all circle attributes if valid id is passed in' do
-      circle = Circle.second
+      circle_1 = Circle.second
 
-      get "/api/v0/circles/#{circle.id}"
+      get "/api/v0/circles/#{circle_1.id}"
 
       expect(response.status).to eq(200)
 
@@ -98,10 +98,10 @@ RSpec.describe 'Circles API', type: :request do
 
       expect(data.count).to eq 1
       
-      attributes = cirle[:attributes]
-      expect(attributes[:user_id]).to eq(circle.user_id)
-      expect(attributes[:name]).to eq(circle.name)
-      expect(attributes[:description]).to eq(circle.description)
+      attributes = circle[:attributes]
+      expect(attributes[:user_id]).to eq(circle_1.user_id)
+      expect(attributes[:name]).to eq(circle_1.name)
+      expect(attributes[:description]).to eq(circle_1.description)
     end
 
     it 'sends 404 Not Found if invalid circle id is passed in' do
@@ -128,11 +128,11 @@ RSpec.describe 'Circles API', type: :request do
       expect(response.status).to eq(201)
       expect(Circle.count).to eq(26)
 
-      circle = Circle.sort(:created_at).last
+      circle = Circle.order(:created_at).last
       data = JSON.parse(response.body, symbolize_names: true)
       attributes = data[:data][:attributes]
 
-      expect(attributes[:user_id]).to eq(1)
+      expect(attributes[:user_id]).to eq(user_id)
       expect(attributes[:name]).to eq("College Friends")
       expect(attributes[:description]).to eq("Friends from college")
 
@@ -150,7 +150,7 @@ RSpec.describe 'Circles API', type: :request do
       expect(response.status).to eq(422)
       expect(Circle.count).to eq(25)
       data = JSON.parse(response.body, symbolize_names: true)
-      expect(data[:errors]).to eq("Validation failed: Description is required")
+      expect(data[:errors]).to eq("Validation failed: Description can't be blank")
     end
   end
 
@@ -160,7 +160,8 @@ RSpec.describe 'Circles API', type: :request do
     end
     it 'deletes a circle with valid id and password' do
       user = @valid_circle.user
-      body = { "password": user.id }
+      user.update(password: "therightpassword", password_confirmation: "therightpassword")
+      body = { "password": "therightpassword" }
 
       delete "/api/v0/users/#{user.id}/circles/#{@valid_circle.id}", params: body
 
@@ -169,12 +170,13 @@ RSpec.describe 'Circles API', type: :request do
       expect(Circle.find_by(id: @valid_circle.id)).to eq(nil)
     end
 
-    it 'sends 404 Not Found if invalid user id is passed in' do
+    it 'sends 404 Not Found if invalid circle id is passed in' do
+      body = { "password": "password" }
       user = @users.first
-      delete "/api/v0/users/#{user.id}/circles/239"
+      delete "/api/v0/users/#{user.id}/circles/239", params: body
 
       expect(response.status).to eq(404)
-      expect(JSON.parse(response.body, symbolize_names: true)[:errors]).to eq("Couldn't find User with 'id'=299")
+      expect(JSON.parse(response.body, symbolize_names: true)[:errors]).to eq("Couldn't find Circle with 'id'=239")
     end
 
     it 'sends 401 Unauthorized if invalid password is passed in' do
