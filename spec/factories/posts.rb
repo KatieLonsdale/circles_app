@@ -1,9 +1,10 @@
 FactoryBot.define do
   factory :post do
-    circle_id { "" }
-    created_at { "2024-06-09 12:00:56" }
-    updated_at { "2024-06-09 12:00:56" }
-    caption { "MyString" }
-    user_id { 1 }
+    created_at { Time.now }
+    updated_at { Time.now }
+    caption { Faker::Lorem.sentence(word_count: 5) }
+    author_id { User.all.sample.id }
+
+    association :circle, factory: :circle
   end
 end
