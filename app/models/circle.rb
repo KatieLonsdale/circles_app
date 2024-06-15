@@ -10,9 +10,7 @@ class Circle < ApplicationRecord
   validates_presence_of :user_id
   validates_presence_of :description
 
-  def add_member(user_id)
-    new_member = {"id" => user_id}
-    updated_members = JSON.parse(members) << new_member
-    self.members = updated_members.to_json
+  def verify_member(user_id)
+    circle_members.exists?(user_id: user_id) || user.id == user_id
   end
 end
