@@ -11,4 +11,8 @@ class ApplicationController < ActionController::API
   def record_invalid(exception)
     render json: { "errors": exception.message }, status: :unprocessable_entity
   end
+
+  def unauthorized_user
+    render json: { "errors": "Unauthorized" }, status: :unauthorized
+  end
 end
