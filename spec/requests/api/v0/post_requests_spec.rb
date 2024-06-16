@@ -49,7 +49,7 @@ RSpec.describe 'Posts API', type: :request do
         expect(actual_comment.post_id).to eq(post.id)
         expect(comment[:type]).to eq("comment")
         comment_attributes = comment[:attributes]
-        expect(comment_attributes[:author_id]).to eq(actual_comment.author_id)
+        expect(comment_attributes[:user_id]).to eq(actual_comment.author_id)
         expect(comment_attributes[:parent_comment_id]).to eq(actual_comment.parent_comment_id)
         expect(comment_attributes[:comment_text]).to eq(actual_comment.comment_text)
         expect(comment_attributes[:created_at]).to eq(actual_comment.created_at.iso8601(3))
@@ -75,6 +75,81 @@ RSpec.describe 'Posts API', type: :request do
       expect(response.status).to eq(401)
       expect(JSON.parse(response.body, symbolize_names: true)[:errors]).
       to eq("Unauthorized")
+    end
+  end
+
+  describe 'create a post' do
+    before(:all) do
+      @users = create_list(:user, 2)
+      @author = @users[0]
+
+      @valid_params = {
+        user_id: @author.id,
+        caption: "This is a caption", 
+        contents: {
+          "image_url": "https://www.example.com/photo.jpg"
+        }
+      }
+    end
+    it 'creates a new post with the user as the author' do
+      circle_member = create(:circle_member, user_id: @author.id)
+      circle_id = circle_member.circle_id
+
+      post "/api/v0/circles/#{circle_id}/posts", params: @valid_params
+      expect(response.status).to eq(201)
+      data = JSON.parse(response.body, symbolize_names: true)[:data]
+      # correct post
+      expect(data[:attributes][:caption]).to eq("This is a caption")
+      expect(data[:attributes][:author_id]).to eq(@author.id)
+      # correct content
+      content = data.dig(:attributes, :contents, :data, 0)
+      expect(content[:type]).to eq("content")
+      expect(content.dig(:attributes, :image_url)).to eq("https://www.example.com/photo.jpg")
+      expect(content.dig(:attributes, :video_url)).to eq(nil)
+      # no comments
+      expect(data.dig(:attributes, :comments, :data)).to eq([])
+
+      expect(Post.count).to eq(1)
+      expect(Content.count).to eq(1)
+    end
+
+    it 'sends 404 Not Found if invalid circle id is passed in' do
+      post "/api/v0/circles/2/posts", params: @valid_params
+
+      expect(response.status).to eq(404)
+      expect(JSON.parse(response.body, symbolize_names: true)[:errors]).
+      to eq("Couldn't find Circle with 'id'=2")
+    end
+
+    it 'sends 401 Unauthorized if user is not a member of the circle' do
+      circle = create(:circle)
+      user = create(:user)
+      params = {
+        user_id: user.id, 
+        caption: "This is a caption", 
+        contents: {
+          "photo_url": "https://www.example.com/photo.jpg"
+        }
+      }
+
+      post "/api/v0/circles/#{circle.id}/posts", params: params
+
+      expect(response.status).to eq(401)
+      expect(JSON.parse(response.body, symbolize_names: true)[:errors]).
+      to eq("Unauthorized")
+    end
+
+    it 'send 422 Unprocessable Entity if invalid params are passed in' do
+      circle_id = create(:circle).id
+
+      invalid_params = { 
+        caption: "This is a caption", 
+        contents: {
+          "photo_url": "https://www.example.com/photo.jpg"
+        }
+      }
+
+      post "/api/v0/circles/#{circle_id}/posts", params: invalid_params
     end
   end
 end
