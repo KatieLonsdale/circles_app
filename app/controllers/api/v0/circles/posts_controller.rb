@@ -13,6 +13,12 @@ class Api::V0::Circles::PostsController < ApplicationController
     render json: PostSerializer.new(post), status: :created
   end
 
+  def update
+    post = @circle.posts.find(params[:id])
+    post.update!(post_params)
+    render json: PostSerializer.new(post)
+  end
+
   private
 
   def get_circle
