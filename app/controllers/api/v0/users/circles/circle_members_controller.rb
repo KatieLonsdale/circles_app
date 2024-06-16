@@ -6,6 +6,12 @@ class Api::V0::Users::Circles::CircleMembersController < ApplicationController
     render json: CircleMemberSerializer.new(circle_member), status: :created
   end
 
+  def destroy
+    circle_member = CircleMember.find(params[:id])
+    circle_member.destroy!
+    render json: {}, status: :no_content
+  end
+
   private
 
   def circle_member_params

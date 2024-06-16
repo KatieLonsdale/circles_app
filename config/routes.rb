@@ -8,7 +8,7 @@ Rails.application.routes.draw do
     namespace :v0 do
       resources :users do
         resources :circles, only: [:index, :create, :destroy], module: :users do
-          resources :circle_members, only: [:create], module: :circles
+          resources :circle_members, only: [:create, :destroy], module: :circles
         end
       end
       resources :circles, only: [:index, :show] do
