@@ -49,7 +49,7 @@ RSpec.describe 'Posts API', type: :request do
         expect(actual_comment.post_id).to eq(post.id)
         expect(comment[:type]).to eq("comment")
         comment_attributes = comment[:attributes]
-        expect(comment_attributes[:user_id]).to eq(actual_comment.author_id)
+        expect(comment_attributes[:author_id]).to eq(actual_comment.author_id)
         expect(comment_attributes[:parent_comment_id]).to eq(actual_comment.parent_comment_id)
         expect(comment_attributes[:comment_text]).to eq(actual_comment.comment_text)
         expect(comment_attributes[:created_at]).to eq(actual_comment.created_at.iso8601(3))
@@ -138,18 +138,25 @@ RSpec.describe 'Posts API', type: :request do
       expect(JSON.parse(response.body, symbolize_names: true)[:errors]).
       to eq("Unauthorized")
     end
+  end
 
-    it 'send 422 Unprocessable Entity if invalid params are passed in' do
-      circle_id = create(:circle).id
+  describe 'update a post' do
+    it 'updates a post' do
+      post = create(:post)
+      author_id = post.author_id
+      circle_id = post.circle.id
+      create(:circle_member, user_id: author_id, circle_id: circle_id)
 
-      invalid_params = { 
-        caption: "This is a caption", 
-        contents: {
-          "photo_url": "https://www.example.com/photo.jpg"
-        }
-      }
+      new_caption = {caption: "This is a new caption", user_id: author_id}
 
-      post "/api/v0/circles/#{circle_id}/posts", params: invalid_params
+      put "/api/v0/circles/#{circle_id}/posts/#{post.id}", params: new_caption
+      time = Time.now
+
+      expect(response.status).to eq(200)
+      data = JSON.parse(response.body, symbolize_names: true)[:data]
+
+      expect(data[:attributes][:caption]).to eq("This is a new caption")
+      expect(data[:attributes][:updated_at]).to be > time.iso8601(3)
     end
   end
 end
