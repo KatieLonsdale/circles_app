@@ -67,7 +67,14 @@ RSpec.describe 'Posts API', type: :request do
     end
 
     it 'send 401 Unauthorized if user is not a member of the circle' do
-      # fill out this test
+      circle = create(:circle)
+      user = create(:user)
+
+      get "/api/v0/circles/#{circle.id}/posts", params: {user_id: user.id}
+
+      expect(response.status).to eq(401)
+      expect(JSON.parse(response.body, symbolize_names: true)[:errors]).
+      to eq("Unauthorized")
     end
   end
 end
