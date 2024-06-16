@@ -159,4 +159,51 @@ RSpec.describe 'Posts API', type: :request do
       expect(data[:attributes][:updated_at]).to be > time.iso8601(3)
     end
   end
+
+  describe 'delete a post' do
+    it 'deletes a post if the user is its author or the circle owner' do
+      # author deletes it
+      create_list(:post, 3)
+      post = Post.first
+      circle_id = post.circle.id
+      author_id = post.author_id
+      create(:circle_member, user_id: author_id, circle_id: circle_id)
+
+      delete "/api/v0/circles/#{circle_id}/posts/#{post.id}", params: {user_id: author_id}
+
+      expect(response.status).to eq(204)
+      expect(Post.count).to eq(2)
+      expect(Post.find_by(id: post.id)).to eq(nil)
+
+      # circle owner deletes it
+      post = Post.first
+      user = create(:user)
+      post.update(author_id: user.id)
+      circle = post.circle
+      circle_owner_id = circle.user_id
+
+      delete "/api/v0/circles/#{circle.id}/posts/#{post.id}", params: {user_id: circle_owner_id, note: "this is the owner"}
+
+      expect(response.status).to eq(204)
+      expect(Post.count).to eq(1)
+      expect(Post.find_by(id: post.id)).to eq(nil)
+    end
+
+    it 'sends 401 Unauthorized if user is not the author or circle owner' do
+      users = create_list(:user, 3)
+      post = create(:post)
+      post.update(author_id: users[0].id)
+      circle = post.circle
+      circle.update(user_id: users[1].id)
+      unauthorized_user = users[2]
+
+      delete "/api/v0/circles/#{circle.id}/posts/#{post.id}", params: {user_id: unauthorized_user.id}
+
+      expect(response.status).to eq(401)
+      expect(JSON.parse(response.body, symbolize_names: true)[:errors]).
+      to eq("Unauthorized")
+
+      expect(Post.count).to eq(1)
+    end
+  end
 end

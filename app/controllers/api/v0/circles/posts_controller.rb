@@ -19,6 +19,16 @@ class Api::V0::Circles::PostsController < ApplicationController
     render json: PostSerializer.new(post)
   end
 
+  def destroy
+    post = @circle.posts.find(params[:id])
+    if post.owner_or_author?(params[:user_id].to_i)
+      post.destroy!
+      render json: {}, status: :no_content
+    else
+      unauthorized_user
+    end
+  end
+
   private
 
   def get_circle
@@ -34,6 +44,6 @@ class Api::V0::Circles::PostsController < ApplicationController
   end
 
   def authenticate_user
-    unauthorized_user if !@circle.verify_member(params[:user_id])
+    unauthorized_user if !@circle.verify_member(params[:user_id].to_i)
   end
 end
