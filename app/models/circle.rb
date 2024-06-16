@@ -11,6 +11,10 @@ class Circle < ApplicationRecord
   validates_presence_of :description
 
   def verify_member(user_id)
-    circle_members.exists?(user_id: user_id) || user.id == user_id
+    circle_members.exists?(user_id: user_id) || owner?(user_id)
+  end
+
+  def owner?(user_id)
+    user_id == user.id
   end
 end
