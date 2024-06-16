@@ -43,5 +43,18 @@ RSpec.describe Circle, type: :model do
         expect(non_owner_circle.verify_member(owner.id)).to eq(false)
       end
     end
+
+    describe 'owner?' do
+      it 'returns true if user is the owner' do
+        create_list(:user, 2)
+        owner = User.first
+        member = User.last
+        circle = create(:circle, user_id: owner.id)
+        create(:circle_member, user_id: member.id, circle_id: circle.id)
+
+        expect(circle.owner?(owner.id)).to eq(true)
+        expect(circle.owner?(member.id)).to eq(false)
+      end
+    end
   end
 end
