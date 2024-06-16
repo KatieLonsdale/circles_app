@@ -7,4 +7,8 @@ class Post < ApplicationRecord
 
   validates_presence_of :circle_id
   validates_presence_of :author_id
+
+  def owner_or_author?(user_id)
+    author_id == user_id || circle.user_id == user_id
+  end
 end
