@@ -9,11 +9,10 @@ Rails.application.routes.draw do
       resources :users do
         resources :circles, only: [:index, :create, :destroy], module: :users do
           resources :circle_members, only: [:create, :destroy], module: :circles
+          resources :posts, only: [:index, :create, :update, :destroy], module: :circles
         end
       end
-      resources :circles, only: [:index, :show] do
-        resources :posts, only: [:index, :create, :update, :destroy], module: :circles
-      end
+      resources :circles, only: [:index, :show]
     end
   end
 end

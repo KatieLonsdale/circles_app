@@ -1,4 +1,4 @@
-class Api::V0::Circles::PostsController < ApplicationController
+class Api::V0::Users::Circles::PostsController < ApplicationController
   before_action :get_circle
   before_action :authenticate_user
 

@@ -20,9 +20,8 @@ RSpec.describe 'Posts API', type: :request do
         contents = create_list(:content, rand(3), post_id: post_id)
         comments = create_list(:comment, rand(3), post_id: post_id)
       end
-      params = {user_id: user.id}
 
-      get "/api/v0/circles/#{circle_id}/posts", params: params
+      get "/api/v0/users/#{user.id}/circles/#{circle_id}/posts"
 
       expect(response.status).to eq(200)
       data = JSON.parse(response.body, symbolize_names: true)
@@ -59,7 +58,7 @@ RSpec.describe 'Posts API', type: :request do
 
     it 'sends 404 Not Found if invalid circle id is passed in' do
       user = User.first
-      get "/api/v0/circles/2/posts", params: {user_id: user.id}
+      get "/api/v0/users/#{user.id}/circles/2/posts"
 
       expect(response.status).to eq(404)
       expect(JSON.parse(response.body, symbolize_names: true)[:errors]).
@@ -70,7 +69,7 @@ RSpec.describe 'Posts API', type: :request do
       circle = create(:circle)
       user = create(:user)
 
-      get "/api/v0/circles/#{circle.id}/posts", params: {user_id: user.id}
+      get "/api/v0/users/#{user.id}/circles/#{circle.id}/posts"
 
       expect(response.status).to eq(401)
       expect(JSON.parse(response.body, symbolize_names: true)[:errors]).
@@ -84,7 +83,6 @@ RSpec.describe 'Posts API', type: :request do
       @author = @users[0]
 
       @valid_params = {
-        user_id: @author.id,
         caption: "This is a caption", 
         contents: {
           "image_url": "https://www.example.com/photo.jpg"
@@ -95,7 +93,7 @@ RSpec.describe 'Posts API', type: :request do
       circle_member = create(:circle_member, user_id: @author.id)
       circle_id = circle_member.circle_id
 
-      post "/api/v0/circles/#{circle_id}/posts", params: @valid_params
+      post "/api/v0/users/#{@author.id}/circles/#{circle_id}/posts", params: @valid_params
       expect(response.status).to eq(201)
       data = JSON.parse(response.body, symbolize_names: true)[:data]
       # correct post
@@ -114,7 +112,7 @@ RSpec.describe 'Posts API', type: :request do
     end
 
     it 'sends 404 Not Found if invalid circle id is passed in' do
-      post "/api/v0/circles/2/posts", params: @valid_params
+      post "/api/v0/users/#{@author.id}/circles/2/posts", params: @valid_params
 
       expect(response.status).to eq(404)
       expect(JSON.parse(response.body, symbolize_names: true)[:errors]).
@@ -125,14 +123,13 @@ RSpec.describe 'Posts API', type: :request do
       circle = create(:circle)
       user = create(:user)
       params = {
-        user_id: user.id, 
         caption: "This is a caption", 
         contents: {
           "photo_url": "https://www.example.com/photo.jpg"
         }
       }
 
-      post "/api/v0/circles/#{circle.id}/posts", params: params
+      post "/api/v0/users/#{user.id}/circles/#{circle.id}/posts", params: params
 
       expect(response.status).to eq(401)
       expect(JSON.parse(response.body, symbolize_names: true)[:errors]).
@@ -147,9 +144,9 @@ RSpec.describe 'Posts API', type: :request do
       circle_id = post.circle.id
       create(:circle_member, user_id: author_id, circle_id: circle_id)
 
-      new_caption = {caption: "This is a new caption", user_id: author_id}
+      new_caption = {caption: "This is a new caption"}
 
-      put "/api/v0/circles/#{circle_id}/posts/#{post.id}", params: new_caption
+      put "/api/v0/users/#{author_id}/circles/#{circle_id}/posts/#{post.id}", params: new_caption
       time = Time.now
 
       expect(response.status).to eq(200)
@@ -169,7 +166,7 @@ RSpec.describe 'Posts API', type: :request do
       author_id = post.author_id
       create(:circle_member, user_id: author_id, circle_id: circle_id)
 
-      delete "/api/v0/circles/#{circle_id}/posts/#{post.id}", params: {user_id: author_id}
+      delete "/api/v0/users/#{author_id}/circles/#{circle_id}/posts/#{post.id}"
 
       expect(response.status).to eq(204)
       expect(Post.count).to eq(2)
@@ -182,7 +179,7 @@ RSpec.describe 'Posts API', type: :request do
       circle = post.circle
       circle_owner_id = circle.user_id
 
-      delete "/api/v0/circles/#{circle.id}/posts/#{post.id}", params: {user_id: circle_owner_id, note: "this is the owner"}
+      delete "/api/v0/users/#{circle_owner_id}/circles/#{circle.id}/posts/#{post.id}"
 
       expect(response.status).to eq(204)
       expect(Post.count).to eq(1)
@@ -197,7 +194,7 @@ RSpec.describe 'Posts API', type: :request do
       circle.update(user_id: users[1].id)
       unauthorized_user = users[2]
 
-      delete "/api/v0/circles/#{circle.id}/posts/#{post.id}", params: {user_id: unauthorized_user.id}
+      delete "/api/v0/users/#{unauthorized_user.id}/circles/#{circle.id}/posts/#{post.id}"
 
       expect(response.status).to eq(401)
       expect(JSON.parse(response.body, symbolize_names: true)[:errors]).
