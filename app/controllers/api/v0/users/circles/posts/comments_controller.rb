@@ -1,8 +1,13 @@
 class Api::V0::Users::Circles::Posts::CommentsController < ApplicationController
-  before_action :get_post, only: [:create, :show, :update, :destroy]
+  before_action :get_post, only: [:index, :create, :show, :update, :destroy]
   before_action :get_circle
   before_action :get_comment, only: [:show, :update, :destroy]
   before_action :authenticate_user
+
+  def index
+    comments = @post.comments
+    render json: CommentSerializer.new(comments), status: :ok
+  end
 
   def create
     comment = Comment.create!(comment_params)

@@ -1,6 +1,25 @@
 require 'rails_helper'
 
 RSpec.describe 'Comments API', type: :request do
+  describe 'get comments' do
+    it 'gets all comments for a post' do
+      User.destroy_all
+      user = create(:user)
+      posts = create_list(:post, 3)
+      post_1 = posts[0]
+      create(:circle_member, user_id: post_1.author_id, circle_id: post_1.circle_id)
+      comments_to_retrieve = create_list(:comment, 3, post_id: post_1.id)
+      post_2 = posts[1]
+      create_list(:comment, 2, post_id: post_2.id)
+
+      get "/api/v0/users/#{post_1.author_id}/circles/#{post_1.circle_id}/posts/#{post_1.id}/comments"
+      expect(response.status).to eq(200)
+      data = JSON.parse(response.body, symbolize_names: true)[:data]
+      expect(data.count).to eq(3)
+      returned_comment_ids = data.map { |comment| comment[:id].to_i }
+      expect(returned_comment_ids.sort).to eq(comments_to_retrieve.map(&:id).sort)
+    end
+  end
   describe 'create a comment' do
     it 'creates a comment' do
       User.destroy_all
