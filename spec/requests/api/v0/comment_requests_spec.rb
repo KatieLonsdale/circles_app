@@ -20,6 +20,41 @@ RSpec.describe 'Comments API', type: :request do
       expect(returned_comment_ids.sort).to eq(comments_to_retrieve.map(&:id).sort)
     end
   end
+
+  describe 'get a comment' do
+    before(:all) do
+      User.destroy_all
+      @user = create(:user)
+      comments = create_list(:comment, 3)
+      random_number = Random.new.rand(3)
+      @comment_to_return = comments[random_number]
+      @post = @comment_to_return.post
+      @circle = @post.circle
+      create(:circle_member, user_id: @user.id, circle_id: @circle.id)
+    end
+    it 'gets a comment' do
+      get "/api/v0/users/#{@user.id}/circles/#{@circle.id}/posts/#{@post.id}/comments/#{@comment_to_return.id}"
+
+      expect(response.status).to eq(200)
+      data = JSON.parse(response.body, symbolize_names: true)[:data]
+
+      expect(data[:type]).to eq("comment")
+      attribtes = data[:attributes]
+      expect(attribtes[:id]).to eq(@comment_to_return.id)
+      expect(attribtes[:comment_text]).to eq(@comment_to_return.comment_text)
+      expect(attribtes[:author_id]).to eq(@comment_to_return.author_id)
+      expect(attribtes[:post_id]).to eq(@comment_to_return.post_id)
+      expect(attribtes[:parent_comment_id]).to eq(@comment_to_return.parent_comment_id)
+    end
+
+    it 'returns 404 Not Found if the comment does not exist' do
+      get "/api/v0/users/#{@user.id}/circles/#{@circle.id}/posts/#{@post.id}/comments/1"
+
+      expect(response.status).to eq(404)
+      expect(JSON.parse(response.body, symbolize_names: true)[:errors]).
+      to eq("Couldn't find Comment with 'id'=1")
+    end
+  end
   describe 'create a comment' do
     it 'creates a comment' do
       User.destroy_all

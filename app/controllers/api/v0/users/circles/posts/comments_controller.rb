@@ -9,6 +9,11 @@ class Api::V0::Users::Circles::Posts::CommentsController < ApplicationController
     render json: CommentSerializer.new(comments), status: :ok
   end
 
+  def show
+    comment = Comment.find(params[:id])
+    render json: CommentSerializer.new(comment), status: :ok
+  end
+
   def create
     comment = Comment.create!(comment_params)
     render json: CommentSerializer.new(comment), status: :created
