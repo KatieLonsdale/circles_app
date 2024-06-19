@@ -3,6 +3,7 @@ require 'rails_helper'
 RSpec.describe 'Comments API', type: :request do
   describe 'create a comment' do
     it 'creates a comment' do
+      User.destroy_all
       circle_member = create(:circle_member)
       circle = circle_member.circle
       member = circle_member.user
@@ -43,6 +44,7 @@ RSpec.describe 'Comments API', type: :request do
 
   describe 'update a comment' do
     before(:all) do
+      User.destroy_all
       @author = create(:user)
       @owner = create(:user)
       @circle_id = create(:circle, user_id: @owner.id).id
@@ -83,6 +85,55 @@ RSpec.describe 'Comments API', type: :request do
       expect(response.status).to eq(404)
       expect(JSON.parse(response.body, symbolize_names: true)[:errors]).
       to eq("Couldn't find Comment with 'id'=1")
+    end
+  end
+
+  describe 'delete a comment' do
+    before(:all) do
+      User.destroy_all
+      @author = create(:user)
+      @owner = create(:user)
+      @circle_id = create(:circle, user_id: @owner.id).id
+      create(:circle_member, user_id: @author.id, circle_id: @circle_id)
+      @post = create(:post, circle_id: @circle_id, author_id: @author.id)
+      @post_id = @post.id
+      @comment_id = create(:comment, author_id: @author.id, post_id: @post_id).id
+    end
+
+    it 'deletes a comment if the user is the author' do
+      expect(Comment.count).to eq(1)
+      expect(@post.comments.count).to eq(1)
+
+      delete "/api/v0/users/#{@author.id}/circles/#{@circle_id}/posts/#{@post_id}/comments/#{@comment_id}"
+
+      expect(response.status).to eq(204)
+      expect(Comment.count).to eq(0)
+      expect(@post.comments.count).to eq(0)
+    end
+
+    it 'deletes a comment if the user is the circle owner' do
+      expect(Comment.count).to eq(1)
+      expect(@post.comments.count).to eq(1)
+
+      delete "/api/v0/users/#{@owner.id}/circles/#{@circle_id}/posts/#{@post_id}/comments/#{@comment_id}"
+
+      expect(response.status).to eq(204)
+      expect(Comment.count).to eq(0)
+      expect(@post.comments.count).to eq(0)
+    end
+
+    it 'sends 401 Unauthorized if user is not the author or circle owner' do
+      unauthorized_user = create(:user)
+      create(:circle_member, user_id: unauthorized_user.id, circle_id: @circle_id)
+
+      expect(Comment.count).to eq(1)
+      expect(@post.comments.count).to eq(1)
+
+      delete "/api/v0/users/#{unauthorized_user.id}/circles/#{@circle_id}/posts/#{@post_id}/comments/#{@comment_id}"
+
+      expect(response.status).to eq(401)
+      expect(Comment.count).to eq(1)
+      expect(@post.comments.count).to eq(1)
     end
   end
 end
