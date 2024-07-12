@@ -165,4 +165,39 @@ RSpec.describe 'Users API', type: :request do
       expect(response.status).to eq(404)
     end
   end
+
+  describe 'authenticate a user' do
+    it 'authenticates a user with valid email and password' do
+      user = @all_users[Random.rand(10)]
+
+      authenticate_params = {
+        email: user.email,
+        password: user.password
+      }
+
+      post "/api/v0/users/authenticate", params: authenticate_params
+
+      expect(response.status).to eq(200)
+      data = JSON.parse(response.body, symbolize_names: true)
+      expect(data[:data][:id]).to eq(user.id.to_s)
+      
+      attributes = data[:data][:attributes]
+      expect(attributes[:email]).to eq(user.email)
+      expect(attributes[:display_name]).to eq(user.display_name)
+      expect(attributes[:notification_frequency]).to eq(user.notification_frequency)
+      expect(attributes).to_not have_key(:password_digest)
+    end
+
+    it 'sends 404 Not Found if invalid email is passed in' do
+      authenticate_params = {
+        email: "user.email",
+        password: "wrongpassword"
+      }
+      post "/api/v0/users/authenticate", params: authenticate_params
+
+      expect(response.status).to eq(401)
+      data = JSON.parse(response.body, symbolize_names: true)
+      expect(data[:errors]).to eq("Invalid email or password")
+    end
+  end
 end

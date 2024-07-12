@@ -17,4 +17,6 @@ Rails.application.routes.draw do
       resources :circles, only: [:index, :show]
     end
   end
+
+  post "api/v0/users/authenticate", to: "api/v0/users#authenticate"
 end
