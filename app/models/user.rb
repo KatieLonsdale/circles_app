@@ -18,6 +18,7 @@ class User < ApplicationRecord
     owned_circles = circles
     circle_members = get_circle_member_circles
     all_circles = owned_circles + circle_members
+    all_circles.uniq
   end
 
   def get_circle_member_circles
