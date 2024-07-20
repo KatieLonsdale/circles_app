@@ -78,6 +78,7 @@ RSpec.describe 'Posts API', type: :request do
   end
 
   describe 'create a post' do
+    # TODO: creation of post is failing silently
     before(:all) do
       @users = create_list(:user, 2)
       @author = @users[0]
