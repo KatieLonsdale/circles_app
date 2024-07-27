@@ -79,6 +79,7 @@ RSpec.describe 'Posts API', type: :request do
 
   describe 'create a post' do
     # TODO: creation of post is failing silently
+    # TODO: posts are being created when params are invalid(is this happening to other models?)
     before(:all) do
       @users = create_list(:user, 2)
       @author = @users[0]
@@ -135,6 +136,26 @@ RSpec.describe 'Posts API', type: :request do
       expect(response.status).to eq(401)
       expect(JSON.parse(response.body, symbolize_names: true)[:errors]).
       to eq("Unauthorized")
+    end
+
+    it 'sends a 401 Unauthorized if an invalid param is passed in' do
+      circle = create(:circle)
+      user = create(:user)
+      posts_count = Post.count
+      params = {
+        caption: "This is a caption", 
+        bad_param: "this is not allowed",
+        contents: {
+          "photo_url": "https://www.example.com/photo.jpg"
+        }
+      }
+
+      post "/api/v0/users/#{user.id}/circles/#{circle.id}/posts", params: params
+
+      expect(response.status).to eq(401)
+      expect(JSON.parse(response.body, symbolize_names: true)[:errors]).
+      to eq("Unauthorized")
+      expect(Post.count).to eq(posts_count)
     end
   end
 
