@@ -52,6 +52,32 @@ RSpec.describe User, type: :model do
         expect(test_result_circles.sort).to eq(user_circles.sort)
       end
     end
+
+    describe 'get_newsfeed' do
+      it 'returns all posts from circles that a user belongs to' do
+        circles = create_list(:circle, 3)
+        user_1 = create(:user)
+        user_2 = create(:user)
+        user_3 = create(:user)
+        # user 1 belongs to all circles
+        circles.each do |circle|
+          create(:circle_member, user_id: user_1.id, circle_id: circle.id)
+          create_list(:post, 3, circle_id: circle.id)
+        end
+        # user 2 belongs to one circle
+        create(:circle_member, user_id: user_2.id, circle_id: circles[0].id)
+
+        user_1_posts = user_1.get_newsfeed
+        user_2_posts = user_2.get_newsfeed
+        user_3_posts = user_3.get_newsfeed
+
+        expect(user_1_posts.count).to eq(9)
+        expect(user_2_posts.count).to eq(3)
+        expect(user_3_posts.count).to eq(0)
+
+        expect(user_1_posts.first).to be_an_instance_of(Post)
+      end
+    end
   end
 end
 
