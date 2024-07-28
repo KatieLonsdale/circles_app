@@ -1,0 +1,25 @@
+require 'aws-sdk-s3'
+
+class ImageUploadService
+  def self.upload(byte_array, folder, content_id)
+    s3_client = Aws::S3::Client.new
+    file_name = "#{SecureRandom.hex(10)}.jpg"
+    bucket_name = Figaro.env.S3_BUCKET_NAME
+    
+    # Convert byte array to an image
+    File.open(file_name, 'wb') do |file|
+      file.write(byte_array.pack('C*'))
+      file.close
+    end
+
+    # Upload the file to S3
+    object_key = "#{folder}/#{file_name}"
+    s3_file = s3_client.put_object(bucket: bucket_name, key: object_key, body: File.read(file_name), content_type: "image/jpeg")
+
+    # assign image_url to content
+    s3_image_url = "https://#{bucket_name}.s3.amazonaws.com/#{object_key}"
+    content = Content.find(content_id)
+    content.image_url = s3_image_url
+    content.save
+  end
+end
