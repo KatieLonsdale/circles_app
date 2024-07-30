@@ -18,5 +18,7 @@ Rails.application.routes.draw do
     end
   end
 
+  # custom routes
+  get "api/v0/users/:id/newsfeed", to: "api/v0/users#newsfeed"
   post "api/v0/users/authenticate", to: "api/v0/users#authenticate"
 end
