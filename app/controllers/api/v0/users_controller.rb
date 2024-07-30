@@ -1,4 +1,6 @@
 class Api::V0::UsersController < ApplicationController
+  before_action :find_user, only: [:show, :update, :destroy, :newsfeed]
+
   def index
     render json: UserSerializer.new(User.all)
   end
@@ -33,6 +35,11 @@ class Api::V0::UsersController < ApplicationController
     end
   end
 
+  def newsfeed
+    newsfeed = @user.get_newsfeed
+    render json: PostSerializer.new(newsfeed)
+  end
+
   private
 
   def user_params
@@ -42,5 +49,9 @@ class Api::V0::UsersController < ApplicationController
             :password_confirmation, 
             :display_name,
             :notification_frequency)
+  end
+
+  def find_user
+    @user = User.find(params[:id])
   end
 end
