@@ -7,4 +7,8 @@ class CommentSerializer
              :comment_text, 
              :created_at, 
              :updated_at
+
+  attribute :author_display_name do |object|
+    object.author_display_name
+  end
 end

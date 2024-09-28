@@ -40,8 +40,7 @@ class Api::V0::Users::Circles::Posts::CommentsController < ApplicationController
   private
   
   def comment_params
-    params.permit(:comment_text, :parent_comment_id, :author_id, :post_id).
-      merge(author_id: params[:user_id], post_id: @post.id)
+    params.permit(:comment_text, :parent_comment_id, :post_id).merge(author_id: params[:user_id], post_id: @post.id)
   end
 
   def update_comment_params
