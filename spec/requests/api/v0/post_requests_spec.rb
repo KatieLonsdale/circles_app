@@ -60,6 +60,9 @@ RSpec.describe 'Posts API', type: :request do
         contents = create_list(:content, rand(3), post_id: post_id)
         comments = create_list(:comment, rand(3), post_id: post_id)
       end
+      image_service = instance_double(ImageUploadService)
+      allow(image_service).to receive(:create_presigned_url).and_return("https://www.example.com/photo.jpg")
+
 
       get "/api/v0/users/#{user.id}/circles/#{circle_id}/posts"
 
@@ -81,7 +84,8 @@ RSpec.describe 'Posts API', type: :request do
         expect(content[:type]).to eq("content")
         content_attributes = content[:attributes]
         expect(content_attributes[:video_url]).to eq(actual_content.video_url)
-        expect(content_attributes[:image_url]).to eq(actual_content.image_url)
+        expect(content_attributes).to_not have_key(:image_url)
+        expect(content_attributes[:signed_image_url]).to eq('https://www.example.com/photo.jpg').or eq(actual_content.image_url)
       end
       attributes[:comments][:data].each do |comment|
         actual_comment = Comment.find(comment[:id].to_i)
@@ -128,7 +132,7 @@ RSpec.describe 'Posts API', type: :request do
         post: {
           caption: "This is a caption", 
           contents: {
-            "image_url": "https://www.example.com/photo.jpg"
+            "image": "https://www.example.com/photo.jpg"
           }
         }
       }
@@ -214,7 +218,11 @@ RSpec.describe 'Posts API', type: :request do
       circle_id = post.circle.id
       create(:circle_member, user_id: author_id, circle_id: circle_id)
 
-      new_caption = {post: {caption: "This is a new caption"}}
+      new_caption = {
+        post: {
+          caption: "This is a new caption"
+        }
+      }
 
       put "/api/v0/users/#{author_id}/circles/#{circle_id}/posts/#{post.id}", params: new_caption
       time = Time.now
