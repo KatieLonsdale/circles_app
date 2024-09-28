@@ -1,6 +1,12 @@
 require 'aws-sdk-s3'
 
 class ImageUploadService
+  def initialize
+    @s3_client = Aws::S3::Client.new
+    @bucket_name = Figaro.env.S3_BUCKET_NAME
+    @base_url = "https://#{@bucket_name}.s3.amazonaws.com/"
+  end
+
   def self.upload(byte_array, folder, content_id)
     s3_client = Aws::S3::Client.new
     file_name = "#{SecureRandom.hex(10)}.jpg"
@@ -22,4 +28,16 @@ class ImageUploadService
     content.image_url = s3_image_url
     content.save
   end
+
+  def create_presigned_url(image_url)
+    object_key = image_url.gsub(@base_url, "")
+    bucket = Aws::S3::Bucket.new(@bucket_name)
+    presigned_url = bucket.object(object_key).presigned_url(:get, expires_in: 3600)
+    return presigned_url
+
+    rescue Aws::Errors::ServiceError => e
+      puts "Couldn't create presigned URL for #{bucket.name}:#{object_key}. Here's why: #{e.message}"
+    end
 end
+
+# TODO: these should not be class methods, add initialize method
