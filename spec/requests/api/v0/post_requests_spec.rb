@@ -131,10 +131,10 @@ RSpec.describe 'Posts API', type: :request do
       @valid_params = {
         post: {
           caption: "This is a caption", 
-          contents: {
-            "image": "https://www.example.com/photo.jpg"
+        },
+        contents: {
+            image: "https://www.example.com/photo.jpg"
           }
-        }
       }
     end
     it 'creates a new post with the user as the author' do
