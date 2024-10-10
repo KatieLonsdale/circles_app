@@ -11,4 +11,8 @@ class Post < ApplicationRecord
   def owner_or_author?(user_id)
     author_id == user_id || circle.user_id == user_id
   end
+
+  def author_display_name
+    User.find(author_id).display_name
+  end
 end
