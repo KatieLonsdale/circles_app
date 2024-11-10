@@ -18,9 +18,24 @@ class ImageUploadService
       file.close
     end
 
-    # Upload the file to S3
-    object_key = "#{folder}/#{file_name}"
-    s3_file = s3_client.put_object(bucket: bucket_name, key: object_key, body: File.read(file_name), content_type: "image/jpeg")
+    begin
+      # Upload the file to S3
+      object_key = "#{folder}/#{file_name}"
+      s3_file = s3_client.put_object(
+        bucket: bucket_name, 
+        key: object_key, 
+        body: File.read(file_name), 
+        content_type: "image/jpeg"
+      )
+      
+      # Delete the file after a successful upload
+      File.delete(file_name) if File.exist?(file_name)
+      puts "File deleted locally after upload to S3."
+    
+    rescue Aws::S3::Errors::ServiceError => e
+      puts "Failed to upload to S3: #{e.message}"
+      # Handle any additional error logging or handling here
+    end
 
     # assign image_url to content
     s3_image_url = "https://#{bucket_name}.s3.amazonaws.com/#{object_key}"
