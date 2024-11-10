@@ -33,5 +33,18 @@ RSpec.describe Post, type: :model do
         expect(post.owner_or_author?(users[2].id)).to eq(false)
       end
     end
+
+    describe 'author_display_name' do
+      it 'should return the display name of the author' do
+        users = create_list(:user, 2)
+        post_1 = create(:post, author_id: users[0].id)
+        post_2 = create(:post, author_id: users[1].id)
+        post_3 = create(:post, author_id: users[1].id)
+
+        expect(post_1.author_display_name).to eq(users[0].display_name)
+        expect(post_2.author_display_name).to eq(users[1].display_name)
+        expect(post_3.author_display_name).to eq(users[1].display_name)
+      end
+    end
   end
 end

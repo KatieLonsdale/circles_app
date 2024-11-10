@@ -9,7 +9,15 @@ class Api::V0::Users::Circles::PostsController < ApplicationController
 
   def create
     post = @circle.posts.create!(post_params)
-    content = Content.create!(content_params(post.id))
+    post_id = post.id
+    if !params[:contents].nil?
+      content_id = Content.create!(content_params(post.id)).id
+      if params.dig(:contents,:video)
+        upload_file(params.dig(:contents,:video), "#{@circle.id}_#{post_id}_videos", content_id)
+      elsif params.dig(:contents,:image)
+        upload_file(params.dig(:contents,:image), "#{@circle.id}_#{post_id}_images", content_id)
+      end
+    end
     render json: PostSerializer.new(post), status: :created
   end
 
@@ -36,14 +44,18 @@ class Api::V0::Users::Circles::PostsController < ApplicationController
   end
 
   def post_params
-    params.permit(:author_id, :caption).merge(author_id: params[:user_id])
+    params.require(:post).permit(:caption, :circle_id, :author_id, :contents).merge(author_id: params[:user_id])
   end
 
   def content_params(post_id)
-    params.require(:contents).permit(:video_url, :image_url, :post_id).merge(post_id: post_id)
+    params.require(:contents).permit(:video_url, :image_url).merge(post_id: post_id, video_url: params[:video], image_url: params[:image])
   end
 
   def authenticate_user
     unauthorized_user if !@circle.verify_member(params[:user_id].to_i)
+  end
+
+  def upload_file(file, folder, content_id)
+    ImageUploadService.upload(file, folder, content_id)
   end
 end

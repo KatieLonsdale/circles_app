@@ -24,4 +24,9 @@ class User < ApplicationRecord
   def get_circle_member_circles
     Circle.joins(:circle_members).where("circle_members.user_id = ?", self.id)
   end
+
+  def get_newsfeed
+    circle_ids = get_all_circles.pluck(:id)
+    Post.where(circle_id: circle_ids)
+  end
 end
