@@ -1,6 +1,6 @@
 class HomeController < ApplicationController
 
   def index
-    head :no_content
+    render json: {"Status": "Up"}, status: :ok
   end
 end
