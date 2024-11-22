@@ -16,6 +16,7 @@ class Api::V0::Users::Circles::Posts::CommentsController < ApplicationController
 
   def create
     comment = Comment.create!(comment_params)
+    comment.post.touch
     render json: CommentSerializer.new(comment), status: :created
   end
 
