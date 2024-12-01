@@ -9,10 +9,14 @@ module Authorize
 
   def authorize_request
     header = request.headers['Authorization']
-    header = header.split(' ').last if header
-    decoded = JsonWebTokenService.decode(header)
-    @current_user = User.find(decoded[:user_id]) if decoded
-  rescue JWT::DecodeError
-    render json: { error: 'Unauthorized' }, status: :unauthorized
+    if header.nil?
+      render json: { error: 'Unauthorized' }, status: :unauthorized
+      return
+    end
+    token = header.split(' ').last
+    decoded = JsonWebTokenService.decode(token)
+    if decoded.nil?
+      render json: { error: 'Unauthorized' }, status: :unauthorized
+    end
   end
 end
