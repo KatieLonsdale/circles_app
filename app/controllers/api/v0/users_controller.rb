@@ -48,7 +48,8 @@ class Api::V0::UsersController < ApplicationController
             :password, 
             :password_confirmation, 
             :display_name,
-            :notification_frequency)
+            :notification_frequency,
+            :last_tou_acceptance)
   end
 
   def find_user

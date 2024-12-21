@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_07_20_183552) do
+ActiveRecord::Schema[7.0].define(version: 2024_12_21_181453) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -119,6 +119,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_07_20_183552) do
     t.integer "notification_frequency", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "last_tou_acceptance"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
