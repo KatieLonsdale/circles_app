@@ -137,6 +137,17 @@ RSpec.describe 'Users API', type: :request do
       expect(updated_user.last_tou_acceptance).to eq("2024-06-15 20:32:49.843517")
     end
 
+    it "can update without all fields included" do
+      partial_user_attributes = {
+        notification_frequency: "daily",
+      }
+      put "/api/v0/users/#{@user.id}", headers: @valid_headers, params: partial_user_attributes
+
+      expect(response.status).to eq(204)
+      updated_user = User.find(@user.id)
+      expect(updated_user.notification_frequency).to eq("daily")
+    end
+
     it 'sends 404 Not Found if invalid user id is passed in' do
       put "/api/v0/users/239487", headers: @valid_headers, params: @updated_user_attributes
 
