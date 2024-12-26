@@ -4,8 +4,10 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   root "home#index"
 
+  
   namespace :api do
     namespace :v0 do
+      resources :sessions, only: [:create]
       resources :users do
         resources :circles, only: [:index, :create, :destroy], module: :users do
           resources :circle_members, only: [:create, :destroy], module: :circles

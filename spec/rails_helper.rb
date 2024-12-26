@@ -71,4 +71,11 @@ RSpec.configure do |config|
       with.library :rails
     end
   end
+
+  # skip authorization for tests not specifically testing that functionality
+  config.before(:each, type: :request) do
+    unless self.class.metadata[:controller] == 'SessionsController'
+      allow_any_instance_of(ApplicationController).to receive(:authorize_request).and_return(true)
+    end
+  end
 end
