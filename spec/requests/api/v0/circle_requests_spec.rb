@@ -171,8 +171,8 @@ RSpec.describe 'Circles API', type: :request do
     end
 
     it 'sends 404 Not Found if invalid circle id is passed in' do
-      body = { "password": "password" }
       user = @users.first
+      body = { "password": user.password}
       delete "/api/v0/users/#{user.id}/circles/239", params: body
 
       expect(response.status).to eq(404)

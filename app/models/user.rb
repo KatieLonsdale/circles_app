@@ -8,11 +8,13 @@ class User < ApplicationRecord
 
   has_secure_password
   validates :email, 
-            presence: true, 
             uniqueness: { case_sensitive: false},
             format: { with: EMAIL_REGEX, message: "must be a valid email address" }
-  validates_presence_of :password
-  validates_presence_of :display_name
+  validates :email, presence: true, on: :create
+  validates_presence_of :password,
+                        on: :create
+  validates_presence_of :display_name,
+                        on: :create
 
   def get_all_circles
     owned_circles = circles
