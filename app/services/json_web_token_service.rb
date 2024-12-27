@@ -1,7 +1,6 @@
 class JsonWebTokenService
   SECRET_KEY = Rails.application.secrets.secret_key_base.to_s
   if Rails.env.production?
-    puts("success")
     SECRET_KEY = ENV['SECRET_KEY_BASE']
   end
 
