@@ -5,6 +5,7 @@ class Api::V0::SessionsController < ApplicationController
     user = User.find_by(email: params[:email])
     if user&.authenticate(params[:password])
       token = JsonWebTokenService.encode(user_id: user.id)
+      puts("token: #{token}")
       render json: { 
         token: token,
         user: UserSerializer.new(user)
