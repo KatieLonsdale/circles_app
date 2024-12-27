@@ -1,8 +1,10 @@
 class JsonWebTokenService
   SECRET_KEY = Rails.application.secrets.secret_key_base.to_s
+  if Rails.env.production?
+    SECRET_KEY = ENV['SECRET_KEY']
+  end
 
   def self.encode(payload, exp = 7.days.from_now)
-    puts(SECRET_KEY)
     payload[:exp] = exp.to_i
     JWT.encode(payload, SECRET_KEY)
   end

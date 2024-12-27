@@ -4,7 +4,6 @@ class Api::V0::SessionsController < ApplicationController
   def create
     user = User.find_by(email: params[:email])
     if user&.authenticate(params[:password])
-      puts(user)
       token = JsonWebTokenService.encode(user_id: user.id)
       render json: { 
         token: token,
