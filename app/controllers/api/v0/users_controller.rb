@@ -50,7 +50,9 @@ class Api::V0::UsersController < ApplicationController
             :password_confirmation, 
             :display_name,
             :notification_frequency,
-            :last_tou_acceptance)
+            :last_tou_acceptance,
+            :notifications_token
+            )
   end
 
   def find_user

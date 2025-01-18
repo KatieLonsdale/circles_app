@@ -72,7 +72,8 @@ RSpec.describe 'Users API', type: :request do
         "email": "katie@email.com", 
         "display_name": "Katie", 
         "password": "password", 
-        "password_confirmation": "password"
+        "password_confirmation": "password",
+        "notifications_token": "valid_token_123"
       }
       post "/api/v0/users", headers: @valid_headers, params: new_user_attributes
 
@@ -94,7 +95,8 @@ RSpec.describe 'Users API', type: :request do
         "email": "katieemail.com", 
         "display_name": "Katie", 
         "password": "password", 
-        "password_confirmation": "password"
+        "password_confirmation": "password",
+        "notifications_token": "valid_token_123"
       }
       post "/api/v0/users", headers: @valid_headers, params: new_user_attributes
 
