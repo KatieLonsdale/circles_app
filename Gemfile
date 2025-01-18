@@ -51,6 +51,9 @@ gem 'figaro'
 # AWS S3
 gem 'aws-sdk-s3', '~> 1.89'
 
+# Firebase Cloud Messaging
+gem 'fcm'
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri mingw x64_mingw ]

@@ -1,0 +1,1 @@
+FCM_CLIENT = FCM.new(Rails.env.production? ? ENV['FCM_SERVER_KEY'] : Figaro.env.FCM_SERVER_KEY) 
