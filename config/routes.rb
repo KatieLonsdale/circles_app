@@ -15,6 +15,11 @@ Rails.application.routes.draw do
             resources :comments, only: [:index, :create, :show, :update, :destroy], module: :posts
           end
         end
+        resources :friendships, only: [:index, :create, :destroy] do
+          collection do
+            get :pending
+          end
+        end
       end
       resources :circles, only: [:index, :show]
     end
@@ -23,4 +28,8 @@ Rails.application.routes.draw do
   # custom routes
   get "api/v0/users/:id/newsfeed", to: "api/v0/users#newsfeed"
   post "api/v0/users/authenticate", to: "api/v0/users#authenticate"
+  
+  # Friendship custom routes
+  patch "api/v0/users/:user_id/friendships/:id/accept", to: "api/v0/friendships#accept"
+  patch "api/v0/users/:user_id/friendships/:id/reject", to: "api/v0/friendships#reject"
 end
