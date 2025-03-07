@@ -13,3 +13,4 @@ globs:
 - Never add stubbing or fake data patterns to code that affects the dev or prod environments 
 - Never overwrite my .env file without first asking and confirming 
 - Consider security principles in the security-principles.mdc file
+- Don't expose endpoints unless it's necessary
