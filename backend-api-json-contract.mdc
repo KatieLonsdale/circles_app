@@ -880,6 +880,15 @@ Removes a friendship between the specified user and another user.
 
 #### Response
 
+On success:
 ```
 204 No Content
-``` 
+```
+
+On failure (friendship doesn't exist):
+```json
+{
+  "errors": ["Friendship does not exist"]
+}
+```
+Status: 422 Unprocessable Entity 
