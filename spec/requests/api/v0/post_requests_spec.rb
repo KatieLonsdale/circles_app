@@ -60,9 +60,11 @@ RSpec.describe 'Posts API', type: :request do
         contents = create_list(:content, rand(3), post_id: post_id)
         comments = create_list(:comment, rand(3), post_id: post_id)
       end
-      image_service = instance_double(ImageUploadService)
-      allow(image_service).to receive(:create_presigned_url).and_return("https://www.example.com/photo.jpg")
-
+      
+      # Properly stub the ImageUploadService class method
+      image_service_instance = instance_double(ImageUploadService)
+      allow(ImageUploadService).to receive(:new).and_return(image_service_instance)
+      allow(image_service_instance).to receive(:create_presigned_url).and_return("https://www.example.com/photo.jpg")
 
       get "/api/v0/users/#{user.id}/circles/#{circle_id}/posts"
 
@@ -85,7 +87,7 @@ RSpec.describe 'Posts API', type: :request do
         content_attributes = content[:attributes]
         expect(content_attributes[:video_url]).to eq(actual_content.video_url)
         expect(content_attributes).to_not have_key(:image_url)
-        expect(content_attributes[:signed_image_url]).to eq('https://www.example.com/photo.jpg').or eq(actual_content.image_url)
+        expect(content_attributes[:presigned_image_url]).to eq('https://www.example.com/photo.jpg').or eq(actual_content.image_url)
       end
       attributes[:comments][:data].each do |comment|
         actual_comment = Comment.find(comment[:id].to_i)

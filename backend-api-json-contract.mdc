@@ -1,3 +1,7 @@
+---
+description: 
+globs: 
+---
 # Backend API JSON Contract
 
 This document outlines all exposed endpoints in the InnerCircles app, including their HTTP methods, URL parameters, and request body requirements.
@@ -78,7 +82,31 @@ This document outlines all exposed endpoints in the InnerCircles app, including 
         "attributes": {
           "id": "integer",
           "email": "string",
-          "display_name": "string"
+          "display_name": "string",
+          "notification_frequency": "string"
+        }
+      }
+    ]
+  }
+  ```
+
+### Search Users
+- **URL**: `/api/v0/users/search`
+- **Method**: `GET`
+- **URL Parameters**: 
+  - `query`: Search string to match against user display names
+- **Response**:
+  ```json
+  {
+    "data": [
+      {
+        "id": "string",
+        "type": "user",
+        "attributes": {
+          "id": "integer",
+          "email": "string",
+          "display_name": "string",
+          "notification_frequency": "string"
         }
       }
     ]
@@ -192,7 +220,7 @@ This document outlines all exposed endpoints in the InnerCircles app, including 
                 "type": "content",
                 "attributes": {
                   "video_url": "string",
-                  "signed_image_url": "string"
+                  "presigned_image_url": "string"
                 }
               }
             ]
@@ -405,7 +433,7 @@ This document outlines all exposed endpoints in the InnerCircles app, including 
                 "type": "content",
                 "attributes": {
                   "video_url": "string",
-                  "signed_image_url": "string"
+                  "presigned_image_url": "string"
                 }
               }
             ]
@@ -473,7 +501,7 @@ This document outlines all exposed endpoints in the InnerCircles app, including 
               "type": "content",
               "attributes": {
                 "video_url": "string",
-                "signed_image_url": "string"
+                "presigned_image_url": "string"
               }
             }
           ]
@@ -523,7 +551,7 @@ This document outlines all exposed endpoints in the InnerCircles app, including 
               "type": "content",
               "attributes": {
                 "video_url": "string",
-                "signed_image_url": "string"
+                "presigned_image_url": "string"
               }
             }
           ]

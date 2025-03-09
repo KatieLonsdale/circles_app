@@ -8,7 +8,13 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v0 do
       resources :sessions, only: [:create]
+      
+      # Custom user routes that need to be defined before the resources
+      get "users/search", to: "users#search"
+      post "users/authenticate", to: "users#authenticate"
+      
       resources :users do
+        get "newsfeed", to: "users#newsfeed"
         resources :circles, only: [:index, :create, :destroy], module: :users do
           resources :circle_members, only: [:create, :destroy], module: :circles
           resources :posts, only: [:index, :create, :update, :destroy], module: :circles do
@@ -25,10 +31,6 @@ Rails.application.routes.draw do
     end
   end
 
-  # custom routes
-  get "api/v0/users/:id/newsfeed", to: "api/v0/users#newsfeed"
-  post "api/v0/users/authenticate", to: "api/v0/users#authenticate"
-  
   # Friendship custom routes
   patch "api/v0/users/:user_id/friendships/:id/accept", to: "api/v0/friendships#accept"
   patch "api/v0/users/:user_id/friendships/:id/reject", to: "api/v0/friendships#reject"

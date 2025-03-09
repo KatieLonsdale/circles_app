@@ -8,9 +8,8 @@ RSpec.describe 'Users API', type: :request do
   
   describe 'get all users' do
     it 'sends a list of all users' do
-      @valid_headers = { "Authorization" => "c0d3b4s3d" }
       
-      get '/api/v0/users', headers: @valid_headers
+      get '/api/v0/users'
 
       expect(response.status).to eq(200)
 
@@ -38,7 +37,7 @@ RSpec.describe 'Users API', type: :request do
     it 'sends all user attributes if valid id is passed in' do
       user_1 = @all_users[Random.rand(10)]
 
-      get "/api/v0/users/#{user_1.id}", headers: @valid_headers
+      get "/api/v0/users/#{user_1.id}"
 
       expect(response.status).to eq(200)
 
@@ -56,7 +55,7 @@ RSpec.describe 'Users API', type: :request do
     end
 
     it 'sends 404 Not Found if invalid user id is passed in' do
-      get "/api/v0/users/239487", headers: @valid_headers
+      get "/api/v0/users/239487"
 
       expect(response.status).to eq(404)
 
@@ -75,7 +74,7 @@ RSpec.describe 'Users API', type: :request do
         "password_confirmation": "password",
         "notifications_token": "valid_token_123"
       }
-      post "/api/v0/users", headers: @valid_headers, params: new_user_attributes
+      post "/api/v0/users", params: new_user_attributes
 
       expect(response.status).to eq(201)
       expect(User.count).to eq(11)
@@ -98,7 +97,7 @@ RSpec.describe 'Users API', type: :request do
         "password_confirmation": "password",
         "notifications_token": "valid_token_123"
       }
-      post "/api/v0/users", headers: @valid_headers, params: new_user_attributes
+      post "/api/v0/users", params: new_user_attributes
 
       expect(response.status).to eq(422)
       expect(User.count).to eq(10)
@@ -108,7 +107,7 @@ RSpec.describe 'Users API', type: :request do
       new_user_attributes[:email] = "katie@email.com"
       new_user_attributes[:password_confirmation] = "password1"
 
-      post "/api/v0/users", headers: @valid_headers, params: new_user_attributes
+      post "/api/v0/users", params: new_user_attributes
 
       expect(response.status).to eq(422)
       expect(User.count).to eq(10)
@@ -131,7 +130,7 @@ RSpec.describe 'Users API', type: :request do
         notification_frequency: "live",
         last_tou_acceptance: "2024-06-15 20:32:49.843517"
       }
-      put "/api/v0/users/#{@user.id}", headers: @valid_headers, params: @updated_user_attributes
+      put "/api/v0/users/#{@user.id}", params: @updated_user_attributes
 
       expect(response.status).to eq(204)
       updated_user = User.find(@user.id)
@@ -143,7 +142,7 @@ RSpec.describe 'Users API', type: :request do
       partial_user_attributes = {
         notification_frequency: "daily",
       }
-      put "/api/v0/users/#{@user.id}", headers: @valid_headers, params: partial_user_attributes
+      put "/api/v0/users/#{@user.id}", params: partial_user_attributes
 
       expect(response.status).to eq(204)
       updated_user = User.find(@user.id)
@@ -151,13 +150,13 @@ RSpec.describe 'Users API', type: :request do
     end
 
     it 'sends 404 Not Found if invalid user id is passed in' do
-      put "/api/v0/users/239487", headers: @valid_headers, params: @updated_user_attributes
+      put "/api/v0/users/239487", params: @updated_user_attributes
 
       expect(response.status).to eq(404)
     end
 
     it 'sends 422 Unprocessable Entity if invalid attributes are passed in' do
-      put "/api/v0/users/#{@user.id}", headers: @valid_headers, params: { email: "katieemail.com" }
+      put "/api/v0/users/#{@user.id}", params: { email: "katieemail.com" }
       expect(response.status).to eq(422)
       expect(@user.email).to_not eq("katieemail.com")
     end
@@ -167,7 +166,7 @@ RSpec.describe 'Users API', type: :request do
     it 'deletes a user with valid id' do
       user = @all_users[Random.rand(10)]
 
-      delete "/api/v0/users/#{user.id}", headers: @valid_headers
+      delete "/api/v0/users/#{user.id}"
 
       expect(response.status).to eq(204)
       expect(User.count).to eq(9)
@@ -175,7 +174,7 @@ RSpec.describe 'Users API', type: :request do
     end
 
     it 'sends 404 Not Found if invalid user id is passed in' do
-      delete "/api/v0/users/239487", headers: @valid_headers
+      delete "/api/v0/users/239487"
 
       expect(response.status).to eq(404)
     end
@@ -213,6 +212,74 @@ RSpec.describe 'Users API', type: :request do
       expect(response.status).to eq(401)
       data = JSON.parse(response.body, symbolize_names: true)
       expect(data[:errors]).to eq("Invalid email or password")
+    end
+  end
+
+  describe 'search users' do
+    before do
+      User.destroy_all
+      @user1 = create(:user, display_name: "John Smith")
+      @user2 = create(:user, display_name: "Johnny Walker")
+      @user3 = create(:user, display_name: "Jane Doe")
+      @user4 = create(:user, display_name: "Robert Johnson")
+    end
+
+    it 'returns users matching the search query' do
+      get '/api/v0/users/search?query=John'
+
+      expect(response.status).to eq(200)
+
+      data = JSON.parse(response.body, symbolize_names: true)
+      users = data[:data]
+
+      expect(users.count).to eq(3)
+      user_ids = users.map { |user| user[:id].to_i }
+      expect(user_ids).to include(@user1.id, @user2.id, @user4.id)
+      expect(user_ids).not_to include(@user3.id)
+
+      users.each do |user|
+        expect(user[:type]).to eq("user")
+        expect(user[:attributes]).to have_key(:id)
+        expect(user[:attributes]).to have_key(:email)
+        expect(user[:attributes]).to have_key(:display_name)
+        expect(user[:attributes]).to have_key(:notification_frequency)
+        expect(user[:attributes]).to_not have_key(:password_digest)
+      end
+    end
+
+    it 'returns an empty array when no users match the query' do
+      get '/api/v0/users/search?query=NonExistentName'
+
+      expect(response.status).to eq(200)
+
+      data = JSON.parse(response.body, symbolize_names: true)
+      users = data[:data]
+
+      expect(users).to be_empty
+    end
+
+    it 'returns an empty array when query is blank' do
+      get '/api/v0/users/search?query='
+
+      expect(response.status).to eq(200)
+
+      data = JSON.parse(response.body, symbolize_names: true)
+      users = data[:data]
+
+      expect(users).to be_empty
+    end
+
+    it 'is case insensitive' do
+      get '/api/v0/users/search?query=john'
+      expect(response.status).to eq(200)
+
+      data = JSON.parse(response.body, symbolize_names: true)
+      users = data[:data]
+
+      expect(users.count).to eq(3)
+      user_ids = users.map { |user| user[:id].to_i }
+      expect(user_ids).to include(@user1.id, @user2.id, @user4.id)
+      expect(user_ids).not_to include(@user3.id)
     end
   end
 end

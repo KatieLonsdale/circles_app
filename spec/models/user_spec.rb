@@ -252,5 +252,40 @@ RSpec.describe User, type: :model do
       end
     end
   end
+
+  describe "class methods" do
+    describe ".search" do
+      before do
+        User.destroy_all
+        @user1 = create(:user, display_name: "John Smith")
+        @user2 = create(:user, display_name: "Johnny Walker")
+        @user3 = create(:user, display_name: "Jane Doe")
+        @user4 = create(:user, display_name: "Robert Johnson")
+      end
+
+      it "returns users whose display_name contains the search query" do
+        results = User.search("John")
+        expect(results).to include(@user1, @user2, @user4)
+        expect(results.pluck(:id)).not_to include(@user3.id)
+      end
+
+      it "is case insensitive" do
+        results = User.search("john")
+        expect(results).to include(@user1, @user2, @user4)
+        expect(results.pluck(:id)).not_to include(@user3.id)
+      end
+
+      it "returns nil if query is blank" do
+        expect(User.search("")).to be_nil
+        expect(User.search(nil)).to be_nil
+      end
+
+      it "returns partial matches" do
+        results = User.search("oh")
+        expect(results).to include(@user1, @user2, @user4)
+        expect(results.pluck(:id)).not_to include(@user3.id)
+      end
+    end
+  end
 end
 

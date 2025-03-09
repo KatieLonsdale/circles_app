@@ -14,3 +14,5 @@ globs:
 - Never overwrite my .env file without first asking and confirming 
 - Consider security principles in the security-principles.mdc file
 - Don't expose endpoints unless it's necessary
+- When errors occur, return error messages for troubleshooting purposes
+- When you update the backend-api-json-contract.mdc file, make sure to update the backend-api-json-contract.mdc file in /Users/katielonsdale/AndroidStudioProjects/InnerCircles/.cursor/rules

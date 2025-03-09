@@ -190,7 +190,7 @@
                 "type": "content",
                 "attributes": {
                   "video_url": "string",
-                  "signed_image_url": "string"
+                  "presigned_image_url": "string"
                 }
               }
             ]
@@ -403,7 +403,7 @@
                 "type": "content",
                 "attributes": {
                   "video_url": "string",
-                  "signed_image_url": "string"
+                  "presigned_image_url": "string"
                 }
               }
             ]
@@ -471,7 +471,7 @@
               "type": "content",
               "attributes": {
                 "video_url": "string",
-                "signed_image_url": "string"
+                "presigned_image_url": "string"
               }
             }
           ]
@@ -521,7 +521,7 @@
               "type": "content",
               "attributes": {
                 "video_url": "string",
-                "signed_image_url": "string"
+                "presigned_image_url": "string"
               }
             }
           ]

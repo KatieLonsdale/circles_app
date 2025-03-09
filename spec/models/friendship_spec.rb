@@ -7,6 +7,11 @@ RSpec.describe Friendship, type: :model do
   end
 
   describe 'validations' do
+    let(:user1) { create(:user) }
+    let(:user2) { create(:user) }
+    
+    subject { Friendship.create(user: user1, friend: user2) }
+    
     it { should validate_uniqueness_of(:user_id).scoped_to(:friend_id).with_message('friendship already exists') }
     
     it 'should not allow self-friendship' do

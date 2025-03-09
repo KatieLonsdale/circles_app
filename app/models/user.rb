@@ -30,6 +30,12 @@ class User < ApplicationRecord
   validates_presence_of :display_name,
                         on: :create
 
+  # Search users by display_name
+  def self.search(query)
+    return nil if query.blank?
+    where("display_name ILIKE ?", "%#{query}%")
+  end
+
   def get_all_circles
     owned_circles = circles
     circle_members = get_circle_member_circles
