@@ -1,6 +1,6 @@
 class Api::V0::UsersController < ApplicationController
   before_action :find_user, only: [:show, :update, :destroy, :newsfeed]
-  skip_before_action :authorize_request, only: [:create, :authenticate]
+  skip_before_action :authorize_request, only: [:create, :authenticate, :search]
 
   def index
     render json: UserSerializer.new(User.all)
@@ -41,6 +41,11 @@ class Api::V0::UsersController < ApplicationController
     render json: PostSerializer.new(newsfeed)
   end
 
+  def search
+    users = User.search(params[:query]) || []
+    render json: UserSerializer.new(users)
+  end
+
   private
 
   def user_params
@@ -56,6 +61,6 @@ class Api::V0::UsersController < ApplicationController
   end
 
   def find_user
-    @user = User.find(params[:id])
+    @user = User.find(params[:id] || params[:user_id])
   end
 end

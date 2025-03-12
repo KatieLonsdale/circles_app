@@ -1,0 +1,35 @@
+---
+description: Top principles of API security to consider and follow.
+globs: 
+---
+1. Authentication & Authorization
+ - Use secure authentication methods like OAuth 2.0 or JWT for API authentication.
+ - Implement role-based access control (RBAC) to limit user permissions.
+ - Use Devise (with devise-jwt if using JWTs) or authlogic for authentication.
+2. Protect Against SQL Injection
+ - Always use ActiveRecord query methods (e.g., where(name: params[:name])) instead of raw SQL.
+ - Avoid find_by_sql and direct string interpolation in queries.
+3. Secure API Keys & Secrets
+ - Store sensitive credentials in environment variables or use Rails’ encrypted credentials (config/credentials.yml.enc).
+ - Never hardcode API keys or secrets in your codebase.
+4. Cross-Site Request Forgery (CSRF) Protection
+ - Disable CSRF for APIs (protect_from_forgery with: :null_session), but ensure authentication tokens are used properly.
+ - Implement CSRF tokens when handling API requests from web apps.
+5. Data Encryption & Secure Storage
+ - Encrypt sensitive data before storing it in the database (attr_encrypted gem).
+ - Use bcrypt (via has_secure_password) for hashing passwords.
+6. Rate Limiting & Throttling
+ - Use Rack Attack to prevent brute-force attacks and API abuse.
+ - Limit login attempts and request frequency.
+7. Validate & Sanitize Input
+ - Validate all user inputs using Rails validators (validates).
+ - Sanitize input to prevent XSS (sanitize helper, strip_tags).
+8. Use HTTPS & Secure Headers
+ - Force HTTPS by setting config.force_ssl = true.
+ - Use Secure Headers (secure_headers gem) to set Content Security Policy (CSP) and prevent clickjacking.
+9. Proper Error Handling
+ - Avoid exposing stack traces in production (config.consider_all_requests_local = false).
+ - Handle errors with proper status codes and generic messages.
+10. Logging & Monitoring
+  - Log security-relevant events (failed logins, suspicious activity).
+ - Use monitoring tools like Datadog, Sentry, or Rollbar for real-time alerts.
