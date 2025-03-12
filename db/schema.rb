@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_01_15_034357) do
+ActiveRecord::Schema[7.0].define(version: 2025_03_07_215121) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -88,6 +88,17 @@ ActiveRecord::Schema[7.0].define(version: 2025_01_15_034357) do
     t.index ["post_id"], name: "index_contents_on_post_id"
   end
 
+  create_table "friendships", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "friend_id", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["friend_id"], name: "index_friendships_on_friend_id"
+    t.index ["user_id", "friend_id"], name: "index_friendships_on_user_id_and_friend_id", unique: true
+    t.index ["user_id"], name: "index_friendships_on_user_id"
+  end
+
   create_table "post_user_reactions", force: :cascade do |t|
     t.bigint "post_id", null: false
     t.integer "user_id", null: false
@@ -131,6 +142,8 @@ ActiveRecord::Schema[7.0].define(version: 2025_01_15_034357) do
   add_foreign_key "comment_user_reactions", "comments"
   add_foreign_key "comments", "posts"
   add_foreign_key "contents", "posts"
+  add_foreign_key "friendships", "users"
+  add_foreign_key "friendships", "users", column: "friend_id"
   add_foreign_key "post_user_reactions", "posts"
   add_foreign_key "posts", "circles"
 end
