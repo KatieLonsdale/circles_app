@@ -32,6 +32,7 @@ class User < ApplicationRecord
 
   # Search users by display_name
   def self.search(query)
+    puts "query: #{query}"
     return nil if query.blank?
     where("display_name ILIKE ?", "%#{query}%")
   end
