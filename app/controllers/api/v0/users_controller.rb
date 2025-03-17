@@ -42,7 +42,6 @@ class Api::V0::UsersController < ApplicationController
   end
 
   def search
-    puts "made it to search"
     users = User.search(params[:query]) || []
     render json: UserSerializer.new(users)
   end
