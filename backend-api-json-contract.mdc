@@ -920,3 +920,117 @@ On failure (friendship doesn't exist):
 }
 ```
 Status: 422 Unprocessable Entity 
+
+## Notification Endpoints
+
+### Get User Notifications
+- **URL**: `/api/v0/users/{user_id}/notifications`
+- **Method**: `GET`
+- **URL Parameters**: 
+  - `user_id`: ID of the user
+  - `read`: (optional) Filter by read status (true/false)
+- **Request Body**: None
+- **Response**:
+  ```json
+  {
+    "data": [
+      {
+        "id": "string",
+        "type": "notification",
+        "attributes": {
+          "id": "integer",
+          "message": "string",
+          "read": "boolean",
+          "action": "string",
+          "created_at": "timestamp",
+          "updated_at": "timestamp",
+          "circle_id": "integer",
+          "circle_name": "string",
+          "notifiable_type": "string",
+          "notifiable_id": "integer"
+        }
+      }
+    ]
+  }
+  ```
+
+### Get Specific Notification
+- **URL**: `/api/v0/users/{user_id}/notifications/{id}`
+- **Method**: `GET`
+- **URL Parameters**: 
+  - `user_id`: ID of the user
+  - `id`: ID of the notification
+- **Request Body**: None
+- **Response**:
+  ```json
+  {
+    "data": {
+      "id": "string",
+      "type": "notification",
+      "attributes": {
+        "id": "integer",
+        "message": "string",
+        "read": "boolean",
+        "action": "string",
+        "created_at": "timestamp",
+        "updated_at": "timestamp",
+        "circle_id": "integer",
+        "circle_name": "string",
+        "notifiable_type": "string",
+        "notifiable_id": "integer"
+      }
+    }
+  }
+  ```
+
+### Mark Notification as Read
+- **URL**: `/api/v0/users/{user_id}/notifications/{id}`
+- **Method**: `PATCH`
+- **URL Parameters**: 
+  - `user_id`: ID of the user
+  - `id`: ID of the notification
+- **Request Body**: None
+- **Response**:
+  ```json
+  {
+    "data": {
+      "id": "string",
+      "type": "notification",
+      "attributes": {
+        "id": "integer",
+        "message": "string",
+        "read": true,
+        "action": "string",
+        "created_at": "timestamp",
+        "updated_at": "timestamp",
+        "circle_id": "integer",
+        "circle_name": "string",
+        "notifiable_type": "string",
+        "notifiable_id": "integer"
+      }
+    }
+  }
+  ```
+
+### Delete Notification
+- **URL**: `/api/v0/users/{user_id}/notifications/{id}`
+- **Method**: `DELETE`
+- **URL Parameters**: 
+  - `user_id`: ID of the user
+  - `id`: ID of the notification
+- **Request Body**: None
+- **Response**: Status 204 No Content
+
+### Mark All Notifications as Read
+- **URL**: `/api/v0/users/{user_id}/notifications/mark_all_read`
+- **Method**: `POST`
+- **URL Parameters**: 
+  - `user_id`: ID of the user
+- **Request Body**: None
+- **Response**:
+  ```json
+  {
+    "success": true,
+    "message": "All notifications marked as read"
+  }
+  ``` 

@@ -251,6 +251,89 @@ RSpec.describe User, type: :model do
         end
       end
     end
+
+    describe 'notification methods' do
+      let(:user) { create(:user) }
+      let(:circle) { create(:circle) }
+      
+      before do
+        # Create a mix of read and unread notifications
+        @old_read = create(:notification, user: user, circle: circle, read: true, created_at: 3.days.ago)
+        @old_unread = create(:notification, user: user, circle: circle, read: false, created_at: 2.days.ago)
+        @recent_unread1 = create(:notification, user: user, circle: circle, read: false, created_at: 5.hours.ago)
+        @recent_unread2 = create(:notification, user: user, circle: circle, read: false, created_at: 1.hour.ago)
+        
+        # Create notifications for another user to ensure they don't interfere
+        other_user = create(:user)
+        create(:notification, user: other_user, circle: circle, read: false)
+        create(:notification, user: other_user, circle: circle, read: true)
+      end
+      
+      describe '#unread_notifications' do
+        it 'returns only unread notifications for the user in newest-first order' do
+          unread = user.unread_notifications
+          
+          expect(unread.count).to eq(3)
+          expect(unread).to include(@old_unread, @recent_unread1, @recent_unread2)
+          expect(unread).not_to include(@old_read)
+          
+          # Check the order (newest first)
+          expect(unread.to_a).to eq([@recent_unread2, @recent_unread1, @old_unread])
+        end
+        
+        it 'returns an empty collection if user has no unread notifications' do
+          # Mark all notifications as read
+          Notification.where(user: user).update_all(read: true)
+          
+          expect(user.unread_notifications).to be_empty
+        end
+      end
+      
+      describe '#unread_notifications_count' do
+        it 'returns the correct count of unread notifications' do
+          expect(user.unread_notifications_count).to eq(3)
+        end
+        
+        it 'returns 0 if user has no unread notifications' do
+          # Mark all notifications as read
+          Notification.where(user: user).update_all(read: true)
+          
+          expect(user.unread_notifications_count).to eq(0)
+        end
+      end
+      
+      describe '#mark_all_notifications_as_read!' do
+        it 'marks all unread notifications as read' do
+          # Verify initial state
+          expect(user.unread_notifications_count).to eq(3)
+          
+          # Mark all as read
+          user.mark_all_notifications_as_read!
+          
+          # Verify all notifications are now read
+          expect(user.unread_notifications_count).to eq(0)
+          expect(user.notifications.read.count).to eq(4) # All 4 notifications should be read
+          
+          # Verify that specific notifications were updated
+          [@old_unread, @recent_unread1, @recent_unread2].each do |notification|
+            expect(notification.reload.read).to eq(true)
+          end
+        end
+        
+        it 'does nothing if user has no unread notifications' do
+          # Mark all notifications as read first
+          Notification.where(user: user).update_all(read: true)
+          
+          # Call the method again
+          expect {
+            user.mark_all_notifications_as_read!
+          }.not_to change { user.notifications.pluck(:read) }
+          
+          # Verify all notifications are still read
+          expect(user.notifications.read.count).to eq(4)
+        end
+      end
+    end
   end
 
   describe "class methods" do

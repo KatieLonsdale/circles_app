@@ -18,6 +18,10 @@ class Api::V0::Users::Circles::PostsController < ApplicationController
         upload_file(params.dig(:contents,:image), "#{@circle.id}_#{post_id}_images", content_id)
       end
     end
+    
+    # Send notifications to circle members
+    NotificationService.send_post_notification(post)
+    
     render json: PostSerializer.new(post), status: :created
   end
 
