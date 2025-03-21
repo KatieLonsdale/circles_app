@@ -2,7 +2,6 @@ class NotificationService
   def self.send_comment_notification(comment)
     post = comment.post
     author = User.find(post.author_id)
-    
     return if author.id == comment.author_id # Don't notify if author comments on their own post
     return unless author.notification_frequency == 'live' # Only send if user wants live notifications
     return if author.notifications_token.blank?
@@ -33,8 +32,15 @@ class NotificationService
     }
 
     begin
-      response = FCM_CLIENT.send([author.notifications_token], options)
+      # Using send_notification_v1 method with the proper format
+      message = {
+        token: author.notifications_token,
+        notification: options[:notification],
+        data: options[:data]
+      }
+      response = FCM_CLIENT.send_notification_v1(message)
       Rails.logger.info "FCM Response: #{response}"
+      Rails.logger.info "FCM Response Status Code: #{response.status_code}" if response.respond_to?(:status_code)
     rescue => e
       Rails.logger.error "Failed to send notification: #{e.message}"
     end
@@ -80,8 +86,19 @@ class NotificationService
     }
 
     begin
-      response = FCM_CLIENT.send(tokens, options)
-      Rails.logger.info "FCM Response: #{response}"
+      # We can only send to one token at a time with send_notification_v1
+      # So loop through each token and send individually
+      responses = []
+      tokens.each do |token|
+        message = {
+          token: token,
+          notification: options[:notification],
+          data: options[:data]
+        }
+        response = FCM_CLIENT.send_notification_v1(message)
+        responses << response
+      end
+      puts "FCM Response: #{responses}"
     rescue => e
       Rails.logger.error "Failed to send notification: #{e.message}"
     end
@@ -121,7 +138,13 @@ class NotificationService
     }
 
     begin
-      response = FCM_CLIENT.send([requestee.notifications_token], options)
+      # Using send_notification_v1 method with the proper format
+      fcm_message = {
+        token: requestee.notifications_token,
+        notification: options[:notification],
+        data: options[:data]
+      }
+      response = FCM_CLIENT.send_notification_v1(fcm_message)
       Rails.logger.info "FCM Response: #{response}"
     rescue => e
       Rails.logger.error "Failed to send notification: #{e.message}"
