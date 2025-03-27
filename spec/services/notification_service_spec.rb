@@ -10,28 +10,29 @@ RSpec.describe NotificationService do
     
     before do
       # Mock FCM client to prevent actual API calls
-      allow(FCM_CLIENT).to receive(:send).and_return(
+      allow(FCM_CLIENT).to receive(:send_notification_v1).and_return(
         "success" => 1,
         "failure" => 0
       )
     end
 
     it 'sends notification when all conditions are met' do
-      expect(FCM_CLIENT).to receive(:send).with(
-        [post_author.notifications_token],
-        {
-          notification: {
-            title: "New Comment on Your Post",
-            body: "#{commenter.display_name} commented: #{comment.comment_text}"
-          },
-          data: {
-            post_id: post.id.to_s,
-            circle_id: post.circle_id.to_s,
-            comment_id: comment.id.to_s,
-            type: 'comment'
-          }
+      # Proper format for send_notification_v1
+      fcm_message = {
+        token: post_author.notifications_token,
+        notification: {
+          title: "New Comment on Your Post",
+          body: "#{commenter.display_name} commented: #{comment.comment_text}"
+        },
+        data: {
+          post_id: post.id.to_s,
+          circle_id: post.circle_id.to_s,
+          comment_id: comment.id.to_s,
+          type: 'comment'
         }
-      )
+      }
+      
+      expect(FCM_CLIENT).to receive(:send_notification_v1).with(fcm_message)
 
       NotificationService.send_comment_notification(comment)
     end
@@ -39,7 +40,7 @@ RSpec.describe NotificationService do
     it 'does not send notification if post author comments on their own post' do
       comment.update(author_id: post_author.id)
       
-      expect(FCM_CLIENT).not_to receive(:send)
+      expect(FCM_CLIENT).not_to receive(:send_notification_v1)
       
       NotificationService.send_comment_notification(comment)
     end
@@ -47,7 +48,7 @@ RSpec.describe NotificationService do
     it 'does not send notification if notifications are not live' do
       post_author.update(notification_frequency: 'daily')
       
-      expect(FCM_CLIENT).not_to receive(:send)
+      expect(FCM_CLIENT).not_to receive(:send_notification_v1)
       
       NotificationService.send_comment_notification(comment)
     end
@@ -55,13 +56,13 @@ RSpec.describe NotificationService do
     it 'does not send notification if author has no firebase token' do
       post_author.update(notifications_token: nil)
       
-      expect(FCM_CLIENT).not_to receive(:send)
+      expect(FCM_CLIENT).not_to receive(:send_notification_v1)
       
       NotificationService.send_comment_notification(comment)
     end
 
     it 'logs error when FCM call fails' do
-      allow(FCM_CLIENT).to receive(:send).and_raise(StandardError.new("FCM Error"))
+      allow(FCM_CLIENT).to receive(:send_notification_v1).and_raise(StandardError.new("FCM Error"))
       allow(Rails.logger).to receive(:error)
 
       expect(Rails.logger).to receive(:error).with("Failed to send notification: FCM Error")
@@ -83,7 +84,7 @@ RSpec.describe NotificationService do
       end
       
       # Mock FCM client to prevent actual API calls
-      allow(FCM_CLIENT).to receive(:send).and_return(
+      allow(FCM_CLIENT).to receive(:send_notification_v1).and_return(
         "success" => 3,
         "failure" => 0
       )
@@ -109,12 +110,12 @@ RSpec.describe NotificationService do
     end
 
     it 'sends FCM notifications to circle members with live notifications enabled' do
-      # Get tokens of the users with live notifications
-      live_tokens = members.map { |m| m.user.notifications_token }
-      
-      expect(FCM_CLIENT).to receive(:send).with(
-        live_tokens,
-        {
+      # For this test, we need to check that it sends individual notifications
+      # to each member rather than sending to all tokens at once
+      members.each do |member|
+        # Setup message expectation for each user
+        fcm_message = {
+          token: member.user.notifications_token,
           notification: {
             title: "New Post in #{circle.name}",
             body: "#{post_author.display_name} created a new post in #{circle.name}!"
@@ -125,7 +126,9 @@ RSpec.describe NotificationService do
             type: 'post'
           }
         }
-      )
+        
+        expect(FCM_CLIENT).to receive(:send_notification_v1).with(fcm_message)
+      end
 
       NotificationService.send_post_notification(post)
     end
@@ -141,7 +144,7 @@ RSpec.describe NotificationService do
       }.to change(Notification, :count).by(members.count)
       
       # But don't send FCM notifications
-      expect(FCM_CLIENT).not_to receive(:send)
+      expect(FCM_CLIENT).not_to receive(:send_notification_v1)
       
       NotificationService.send_post_notification(post)
     end
@@ -157,13 +160,13 @@ RSpec.describe NotificationService do
       }.to change(Notification, :count).by(members.count)
       
       # But don't send FCM notifications
-      expect(FCM_CLIENT).not_to receive(:send)
+      expect(FCM_CLIENT).not_to receive(:send_notification_v1)
       
       NotificationService.send_post_notification(post)
     end
 
     it 'logs error when FCM call fails' do
-      allow(FCM_CLIENT).to receive(:send).and_raise(StandardError.new("FCM Error"))
+      allow(FCM_CLIENT).to receive(:send_notification_v1).and_raise(StandardError.new("FCM Error"))
       allow(Rails.logger).to receive(:error)
 
       expect(Rails.logger).to receive(:error).with("Failed to send notification: FCM Error")
