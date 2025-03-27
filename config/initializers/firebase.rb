@@ -7,7 +7,7 @@ if Rails.env.production?
   credentials_file.write(credentials_content)
   credentials_file.close
 
-  Rails.logger.info "credentials_content: #{credentials_content}"
+  Rails.logger.info "credentials_file_path: #{credentials_file.path}"
   
   # Initialize FCM client with the temp file path
   FCM_CLIENT = FCM.new(
