@@ -9,4 +9,8 @@ class UserSerializer
   attribute :pending_friends_count do |user|
     user.all_pending_friends.count
   end
+  
+  attribute :unread_notifications_count do |user|
+    user.unread_notifications_count
+  end
 end

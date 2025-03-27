@@ -15,6 +15,11 @@ Rails.application.routes.draw do
       
       resources :users do
         get "newsfeed", to: "users#newsfeed"
+        resources :notifications, only: [:index, :show, :update, :destroy], module: :users do
+          collection do
+            post :mark_all_read
+          end
+        end
         resources :circles, only: [:index, :create, :destroy], module: :users do
           resources :circle_members, only: [:create, :destroy], module: :circles
           resources :posts, only: [:index, :create, :update, :destroy], module: :circles do

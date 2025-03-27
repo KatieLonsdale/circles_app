@@ -1,1 +1,4 @@
-FCM_CLIENT = FCM.new(Rails.env.production? ? ENV['FCM_SERVER_KEY'] : Figaro.env.FCM_SERVER_KEY) 
+FCM_CLIENT = FCM.new(
+  Rails.env.production? ? ENV['GOOGLE_APPLICATION_CREDENTIALS_PATH'] : Figaro.env.GOOGLE_APPLICATION_CREDENTIALS_PATH,
+  Rails.env.production? ? ENV['FIREBASE_PROJECT_ID'] : Figaro.env.FIREBASE_PROJECT_ID
+) 

@@ -1,6 +1,7 @@
 class User < ApplicationRecord
   has_many :circles, dependent: :destroy
   has_many :circle_members, dependent: :destroy
+  has_many :notifications, dependent: :destroy
   
   # Friendship associations
   has_many :friendships, dependent: :destroy
@@ -93,5 +94,18 @@ class User < ApplicationRecord
   
   def pending_friend_request_to?(user)
     pending_friends.include?(user)
+  end
+  
+  # Notification methods
+  def unread_notifications
+    notifications.unread.newest_first
+  end
+  
+  def unread_notifications_count
+    notifications.unread.count
+  end
+  
+  def mark_all_notifications_as_read!
+    notifications.unread.each(&:mark_as_read!)
   end
 end
