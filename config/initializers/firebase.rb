@@ -1,4 +1,20 @@
-FCM_CLIENT = FCM.new(
-  Rails.env.production? ? ENV['GOOGLE_APPLICATION_CREDENTIALS_PATH'] : Figaro.env.GOOGLE_APPLICATION_CREDENTIALS_PATH,
-  Rails.env.production? ? ENV['FIREBASE_PROJECT_ID'] : Figaro.env.FIREBASE_PROJECT_ID
-) 
+# Initialize Firebase Cloud Messaging client
+if Rails.env.production?
+  # In production, write the credentials from env var to a temp file
+  require 'tempfile'
+  credentials_content = ENV['GOOGLE_APPLICATION_CREDENTIALS_PATH']
+  credentials_file = Tempfile.new(['firebase_credentials', '.json'])
+  credentials_file.write(credentials_content)
+  credentials_file.close
+  
+  FCM_CLIENT = FCM.new(
+    credentials_file.path,
+    ENV['FIREBASE_PROJECT_ID']
+  )
+else
+  # In non-production environments, use the existing approach
+  FCM_CLIENT = FCM.new(
+    Figaro.env.GOOGLE_APPLICATION_CREDENTIALS_PATH,
+    Figaro.env.FIREBASE_PROJECT_ID
+  )
+end 
