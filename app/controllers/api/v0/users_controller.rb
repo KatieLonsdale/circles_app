@@ -9,6 +9,7 @@ class Api::V0::UsersController < ApplicationController
   def show
     user = User.find(params[:id])
     render json: UserSerializer.new(user)
+    require 'pry'; binding.pry
   end
 
   def create
