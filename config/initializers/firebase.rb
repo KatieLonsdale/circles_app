@@ -3,6 +3,7 @@ if Rails.env.production?
   # In production, write the credentials content from env var to a temp file
   require 'tempfile'
   credentials_content = ENV['GOOGLE_APPLICATION_CREDENTIALS_PATH']
+  Rails.logger.info "credentials_content: #{credentials_content}"
   credentials_file = Tempfile.new(['firebase_credentials', '.json'])
   Rails.logger.info "credentials_file: #{credentials_file.path}"
   credentials_file.write(credentials_content)
