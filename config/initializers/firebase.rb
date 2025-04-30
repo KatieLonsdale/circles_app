@@ -3,17 +3,17 @@ if Rails.env.production?
   # In production, write the credentials content from env var to a temp file
   require 'tempfile'
   credentials_content = ENV['GOOGLE_APPLICATION_CREDENTIALS_PATH']
-  Rails.logger.info "credentials_content: #{credentials_content}"
   credentials_file = Tempfile.new(['firebase_credentials', '.json'])
-  Rails.logger.info "credentials_file: #{credentials_file.path}"
   credentials_file.write(credentials_content)
-  credentials_file.close
+  credentials_file.rewind
 
   # Initialize FCM client with the temp file path
   FCM_CLIENT = FCM.new(
     credentials_file.path,
     ENV['FIREBASE_PROJECT_ID']
   )
+  credentials_file.close
+  credentials_file.unlink
 else
   # In non-production environments, use the existing approach
   FCM_CLIENT = FCM.new(
