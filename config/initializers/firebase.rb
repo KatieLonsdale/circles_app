@@ -16,7 +16,7 @@ end
 if Rails.env.production?
   # Initialize FCM client with the temp file path
   FCM_CLIENT = FCM.new(
-    create_temp_credentials_file,
+    $firebase_credentials_file.path,
     ENV['FIREBASE_PROJECT_ID']
   )
 else
