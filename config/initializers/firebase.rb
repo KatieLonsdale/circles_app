@@ -6,7 +6,7 @@ if Rails.env.production?
   credentials_file = Tempfile.new(['firebase_credentials', '.json'])
   credentials_file.write(credentials_content)
   credentials_file.rewind
-  Rails.logger.info "credentials_file: #{credentials_file.read}"
+  Rails.logger.debug "credentials_file: #{credentials_file.read}"
 
   # Initialize FCM client with the temp file path
   FCM_CLIENT = FCM.new(
