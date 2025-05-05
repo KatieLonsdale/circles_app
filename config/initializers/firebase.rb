@@ -19,6 +19,8 @@ if Rails.env.production?
     create_temp_credentials_file,
     ENV['FIREBASE_PROJECT_ID']
   )
+  $firebase_credentials_file.close
+  $firebase_credentials_file.unlink
 else
   # In non-production environments, use the existing approach
   FCM_CLIENT = FCM.new(
