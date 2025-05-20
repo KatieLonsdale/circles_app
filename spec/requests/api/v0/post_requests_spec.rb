@@ -121,6 +121,31 @@ RSpec.describe 'Posts API', type: :request do
       expect(JSON.parse(response.body, symbolize_names: true)[:errors]).
       to eq("Unauthorized")
     end
+
+    it 'returns comments with nested replies' do
+      circle = create(:circle)
+      user = create(:user)
+      create(:circle_member, user_id: user.id, circle_id: circle.id)
+      post = create(:post, circle_id: circle.id)
+      
+      # Create a parent comment
+      parent_comment = create(:comment, post_id: post.id, parent_comment_id: nil)
+      # Create a reply to the parent comment
+      reply_comment = create(:comment, post_id: post.id, parent_comment_id: parent_comment.id)
+
+      get "/api/v0/users/#{user.id}/circles/#{circle.id}/posts"
+
+      expect(response.status).to eq(200)
+      data = JSON.parse(response.body, symbolize_names: true)[:data]
+      post = data.first
+      comments = post[:attributes][:comments][:data]
+      expect(comments.count).to eq(1)
+      expect(comments[0][:attributes][:parent_comment_id]).to be_nil
+      replies = comments[0][:attributes][:replies][:data]
+      expect(replies.count).to eq(1)
+      expect(replies[0][:attributes][:parent_comment_id]).to eq(parent_comment.id)
+      expect(replies[0][:id]).to eq(reply_comment.id.to_s)
+    end
   end
 
   describe 'create a post' do
