@@ -46,5 +46,28 @@ RSpec.describe Post, type: :model do
         expect(post_3.author_display_name).to eq(users[1].display_name)
       end
     end
+    
+    describe '#top_level_comments' do
+      it 'returns only comments without a parent comment' do
+        user = create(:user)
+        post = create(:post, author_id: user.id)
+        
+        # Create top level comments
+        top_comment1 = create(:comment, post: post, parent_comment_id: nil, author_id: user.id)
+        top_comment2 = create(:comment, post: post, parent_comment_id: nil, author_id: user.id)
+        
+        # Create reply comments with parent_comment_id
+        reply1 = create(:comment, post: post, parent_comment_id: top_comment1.id, author_id: user.id)
+        reply2 = create(:comment, post: post, parent_comment_id: top_comment2.id, author_id: user.id)
+        
+        top_level_comments = post.top_level_comments
+        
+        expect(top_level_comments).to include(top_comment1)
+        expect(top_level_comments).to include(top_comment2)
+        expect(top_level_comments).not_to include(reply1)
+        expect(top_level_comments).not_to include(reply2)
+        expect(top_level_comments.count).to eq(2)
+      end
+    end
   end
 end
