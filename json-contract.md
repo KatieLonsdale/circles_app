@@ -207,7 +207,44 @@
                   "parent_comment_id": "integer",
                   "comment_text": "string",
                   "created_at": "timestamp",
-                  "updated_at": "timestamp"
+                  "updated_at": "timestamp",
+                  "author_display_name": "string",
+                  "replies": {
+                    "data": [
+                      {
+                        "id": "string",
+                        "type": "comment",
+                        "attributes": {
+                          "id": "integer",
+                          "author_id": "integer",
+                          "parent_comment_id": "integer",
+                          "post_id": "integer",
+                          "comment_text": "string",
+                          "created_at": "timestamp",
+                          "updated_at": "timestamp",
+                          "author_display_name": "string",
+                          "replies": {
+                            "data": [
+                              {
+                                "id": "string",
+                                "type": "comment",
+                                "attributes": {
+                                  "id": "integer",
+                                  "author_id": "integer",
+                                  "parent_comment_id": "integer",
+                                  "post_id": "integer",
+                                  "comment_text": "string",
+                                  "created_at": "timestamp",
+                                  "updated_at": "timestamp",
+                                  "author_display_name": "string"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  }
                 }
               }
             ]
@@ -420,7 +457,44 @@
                   "parent_comment_id": "integer",
                   "comment_text": "string",
                   "created_at": "timestamp",
-                  "updated_at": "timestamp"
+                  "updated_at": "timestamp",
+                  "author_display_name": "string",
+                  "replies": {
+                    "data": [
+                      {
+                        "id": "string",
+                        "type": "comment",
+                        "attributes": {
+                          "id": "integer",
+                          "author_id": "integer",
+                          "parent_comment_id": "integer",
+                          "post_id": "integer",
+                          "comment_text": "string",
+                          "created_at": "timestamp",
+                          "updated_at": "timestamp",
+                          "author_display_name": "string",
+                          "replies": {
+                            "data": [
+                              {
+                                "id": "string",
+                                "type": "comment",
+                                "attributes": {
+                                  "id": "integer",
+                                  "author_id": "integer",
+                                  "parent_comment_id": "integer",
+                                  "post_id": "integer",
+                                  "comment_text": "string",
+                                  "created_at": "timestamp",
+                                  "updated_at": "timestamp",
+                                  "author_display_name": "string"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  }
                 }
               }
             ]
@@ -568,7 +642,62 @@
           "parent_comment_id": "integer",
           "comment_text": "string",
           "created_at": "timestamp",
-          "updated_at": "timestamp"
+          "updated_at": "timestamp",
+          "author_display_name": "string",
+          "replies": {
+            "data": [
+              {
+                "id": "string",
+                "type": "comment",
+                "attributes": {
+                  "id": "integer",
+                  "author_id": "integer",
+                  "post_id": "integer",
+                  "parent_comment_id": "integer",
+                  "comment_text": "string",
+                  "created_at": "timestamp",
+                  "updated_at": "timestamp",
+                  "author_display_name": "string",
+                  "replies": {
+                    "data": [
+                      {
+                        "id": "string",
+                        "type": "comment",
+                        "attributes": {
+                          "id": "integer",
+                          "author_id": "integer",
+                          "parent_comment_id": "integer",
+                          "post_id": "integer",
+                          "comment_text": "string",
+                          "created_at": "timestamp",
+                          "updated_at": "timestamp",
+                          "author_display_name": "string",
+                          "replies": {
+                            "data": [
+                              {
+                                "id": "string",
+                                "type": "comment",
+                                "attributes": {
+                                  "id": "integer",
+                                  "author_id": "integer",
+                                  "parent_comment_id": "integer",
+                                  "post_id": "integer",
+                                  "comment_text": "string",
+                                  "created_at": "timestamp",
+                                  "updated_at": "timestamp",
+                                  "author_display_name": "string"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
         }
       }
     ]
@@ -597,7 +726,44 @@
         "parent_comment_id": "integer",
         "comment_text": "string",
         "created_at": "timestamp",
-        "updated_at": "timestamp"
+        "updated_at": "timestamp",
+        "author_display_name": "string",
+        "replies": {
+          "data": [
+            {
+              "id": "string",
+              "type": "comment",
+              "attributes": {
+                "id": "integer",
+                "author_id": "integer",
+                "post_id": "integer",
+                "parent_comment_id": "integer",
+                "comment_text": "string",
+                "created_at": "timestamp",
+                "updated_at": "timestamp",
+                "author_display_name": "string",
+                "replies": {
+                  "data": [
+                    {
+                      "id": "string",
+                      "type": "comment",
+                      "attributes": {
+                        "id": "integer",
+                        "author_id": "integer",
+                        "parent_comment_id": "integer",
+                        "post_id": "integer",
+                        "comment_text": "string",
+                        "created_at": "timestamp",
+                        "updated_at": "timestamp",
+                        "author_display_name": "string"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
       }
     }
   }
@@ -630,7 +796,11 @@
         "parent_comment_id": "integer",
         "comment_text": "string",
         "created_at": "timestamp",
-        "updated_at": "timestamp"
+        "updated_at": "timestamp",
+        "author_display_name": "string",
+        "replies": {
+          "data": []
+        }
       }
     }
   }
@@ -663,7 +833,11 @@
         "parent_comment_id": "integer",
         "comment_text": "string",
         "created_at": "timestamp",
-        "updated_at": "timestamp"
+        "updated_at": "timestamp",
+        "author_display_name": "string",
+        "replies": {
+          "data": []
+        }
       }
     }
   }
