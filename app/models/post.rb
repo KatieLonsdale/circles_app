@@ -16,4 +16,8 @@ class Post < ApplicationRecord
   def author_display_name
     User.find(author_id).display_name
   end
+
+  def top_level_comments
+    comments.where(parent_comment_id: nil)
+  end
 end

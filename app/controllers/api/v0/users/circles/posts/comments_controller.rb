@@ -5,7 +5,7 @@ class Api::V0::Users::Circles::Posts::CommentsController < ApplicationController
   before_action :authenticate_user
 
   def index
-    comments = @post.comments
+    comments = @post.top_level_comments
     render json: CommentSerializer.new(comments), status: :ok
   end
 
