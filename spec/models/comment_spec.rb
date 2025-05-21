@@ -26,5 +26,69 @@ RSpec.describe Comment, type: :model do
         expect(comment_3.author_display_name).to eq(users[1].display_name)
       end
     end
+    
+    describe 'replies' do
+      it 'returns all comments where parent_comment_id matches the comment id' do
+        user = create(:user)
+        post = create(:post, author_id: user.id)
+        
+        # Create parent comment
+        parent_comment = create(:comment, post: post, parent_comment_id: nil, author_id: user.id)
+        
+        # Create replies to the parent comment
+        reply1 = create(:comment, post: post, parent_comment_id: parent_comment.id, author_id: user.id)
+        reply2 = create(:comment, post: post, parent_comment_id: parent_comment.id, author_id: user.id)
+        
+        # Create another comment with its own replies
+        other_comment = create(:comment, post: post, parent_comment_id: nil, author_id: user.id)
+        other_reply = create(:comment, post: post, parent_comment_id: other_comment.id, author_id: user.id)
+        
+        # Test the replies method
+        replies = parent_comment.replies
+        
+        expect(replies).to include(reply1)
+        expect(replies).to include(reply2)
+        expect(replies).not_to include(other_reply)
+        expect(replies.count).to eq(2)
+      end
+      
+      it 'returns an empty collection when a comment has no replies' do
+        user = create(:user)
+        post = create(:post, author_id: user.id)
+        
+        # Create a comment with no replies
+        comment = create(:comment, post: post, parent_comment_id: nil, author_id: user.id)
+        
+        replies = comment.replies
+        
+        expect(replies).to be_empty
+        expect(replies.count).to eq(0)
+      end
+      
+      it 'works with nested replies' do
+        user = create(:user)
+        post = create(:post, author_id: user.id)
+        
+        # Create parent comment
+        parent_comment = create(:comment, post: post, parent_comment_id: nil, author_id: user.id)
+        
+        # Create a reply to the parent comment
+        reply = create(:comment, post: post, parent_comment_id: parent_comment.id, author_id: user.id)
+        
+        # Create a reply to the reply
+        nested_reply = create(:comment, post: post, parent_comment_id: reply.id, author_id: user.id)
+        
+        # Test the replies method for both parent and reply
+        parent_replies = parent_comment.replies
+        reply_replies = reply.replies
+        
+        expect(parent_replies).to include(reply)
+        expect(parent_replies).not_to include(nested_reply)
+        expect(parent_replies.count).to eq(1)
+        
+        expect(reply_replies).to include(nested_reply)
+        expect(reply_replies.count).to eq(1)
+      end
+    end
   end
 end

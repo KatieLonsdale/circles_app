@@ -20,6 +20,6 @@ class PostSerializer
   end
 
   attribute :comments do |post|
-    CommentSerializer.new(post.comments)
+    CommentSerializer.new(post.top_level_comments)
   end
 end

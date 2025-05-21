@@ -7,6 +7,11 @@ class Api::V0::Users::Circles::PostsController < ApplicationController
     render json: PostSerializer.new(posts)
   end
 
+  def show
+    post = @circle.posts.find(params[:id])
+    render json: PostSerializer.new(post)
+  end
+
   def create
     post = @circle.posts.create!(post_params)
     post_id = post.id
