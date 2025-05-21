@@ -22,7 +22,7 @@ Rails.application.routes.draw do
         end
         resources :circles, only: [:index, :create, :destroy], module: :users do
           resources :circle_members, only: [:create, :destroy], module: :circles
-          resources :posts, only: [:index, :create, :update, :destroy], module: :circles do
+          resources :posts, only: [:index, :create, :update, :destroy, :show], module: :circles do
             resources :comments, only: [:index, :create, :show, :update, :destroy], module: :posts
           end
         end
