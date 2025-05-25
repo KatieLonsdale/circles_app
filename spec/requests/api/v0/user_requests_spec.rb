@@ -74,7 +74,7 @@ RSpec.describe 'Users API', type: :request do
         "password_confirmation": "password",
         "notifications_token": "valid_token_123"
       }
-      post "/api/v0/users", params: new_user_attributes
+      post "/api/v0/users", params: {user: new_user_attributes}
 
       expect(response.status).to eq(201)
       expect(User.count).to eq(11)
@@ -95,9 +95,8 @@ RSpec.describe 'Users API', type: :request do
         "display_name": "Katie", 
         "password": "password", 
         "password_confirmation": "password",
-        "notifications_token": "valid_token_123"
       }
-      post "/api/v0/users", params: new_user_attributes
+      post "/api/v0/users", params: {user: new_user_attributes}
 
       expect(response.status).to eq(422)
       expect(User.count).to eq(10)
@@ -107,7 +106,7 @@ RSpec.describe 'Users API', type: :request do
       new_user_attributes[:email] = "katie@email.com"
       new_user_attributes[:password_confirmation] = "password1"
 
-      post "/api/v0/users", params: new_user_attributes
+      post "/api/v0/users", params: {user: new_user_attributes}
 
       expect(response.status).to eq(422)
       expect(User.count).to eq(10)
@@ -128,9 +127,10 @@ RSpec.describe 'Users API', type: :request do
         display_name: @user.display_name, 
         password: @user.password,
         notification_frequency: "live",
-        last_tou_acceptance: "2024-06-15 20:32:49.843517"
+        last_tou_acceptance: "2024-06-15 20:32:49.843517",
+        notifications_token: "valid_token_123"
       }
-      put "/api/v0/users/#{@user.id}", params: @updated_user_attributes
+      put "/api/v0/users/#{@user.id}", params: {user: @updated_user_attributes}
 
       expect(response.status).to eq(204)
       updated_user = User.find(@user.id)
@@ -142,7 +142,7 @@ RSpec.describe 'Users API', type: :request do
       partial_user_attributes = {
         notification_frequency: "daily",
       }
-      put "/api/v0/users/#{@user.id}", params: partial_user_attributes
+      put "/api/v0/users/#{@user.id}", params: {user: partial_user_attributes}
 
       expect(response.status).to eq(204)
       updated_user = User.find(@user.id)
@@ -150,13 +150,13 @@ RSpec.describe 'Users API', type: :request do
     end
 
     it 'sends 404 Not Found if invalid user id is passed in' do
-      put "/api/v0/users/239487", params: @updated_user_attributes
+      put "/api/v0/users/239487", params: {user: @updated_user_attributes}
 
       expect(response.status).to eq(404)
     end
 
     it 'sends 422 Unprocessable Entity if invalid attributes are passed in' do
-      put "/api/v0/users/#{@user.id}", params: { email: "katieemail.com" }
+      put "/api/v0/users/#{@user.id}", params: {user: {email: "katieemail.com"}}
       expect(response.status).to eq(422)
       expect(@user.email).to_not eq("katieemail.com")
     end
