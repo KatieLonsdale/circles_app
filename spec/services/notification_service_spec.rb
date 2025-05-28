@@ -93,7 +93,7 @@ RSpec.describe NotificationService do
     it 'creates database notifications for all circle members except the author' do
       expect {
         NotificationService.send_post_notification(post)
-      }.to change(Notification, :count).by(members.count)
+      }.to change(Notification, :count).by(members.count + 1)
       
       members.each do |member|
         expect(member.user.notifications.count).to eq(1)
@@ -141,7 +141,7 @@ RSpec.describe NotificationService do
       # Still create DB notifications for everyone
       expect {
         NotificationService.send_post_notification(post)
-      }.to change(Notification, :count).by(members.count)
+      }.to change(Notification, :count).by(members.count + 1)
       
       # But don't send FCM notifications
       expect(FCM_CLIENT).not_to receive(:send_notification_v1)
@@ -153,11 +153,12 @@ RSpec.describe NotificationService do
       members.each do |member|
         member.user.update(notifications_token: nil)
       end
+      post.circle.user.update(notifications_token: nil)
       
       # Still create DB notifications for everyone
       expect {
         NotificationService.send_post_notification(post)
-      }.to change(Notification, :count).by(members.count)
+      }.to change(Notification, :count).by(members.count + 1)
       
       # But don't send FCM notifications
       expect(FCM_CLIENT).not_to receive(:send_notification_v1)
@@ -172,6 +173,24 @@ RSpec.describe NotificationService do
       expect(Rails.logger).to receive(:error).with("Failed to send notification: FCM Error")
 
       NotificationService.send_post_notification(post)
+    end
+
+    it 'sends notification to circle owner if they are a member' do
+      owner = create(:user, notification_frequency: 'live', notifications_token: 'valid_token')
+      member = create(:user, notification_frequency: 'live', notifications_token: 'valid_token')
+      circle = create(:circle, user_id: owner.id)
+      create(:circle_member, circle: circle, user: member)
+      post = create(:post, circle: circle, author_id: member.id)
+
+      NotificationService.send_post_notification(post)
+      
+      notifications = Notification.where(
+        user_id: circle.user_id,
+        notifiable_id: post.id,
+        notifiable_type: 'Post'
+      )
+      expect(notifications.count).to eq(1)
+      expect(notifications.first.user).to eq(owner)
     end
   end
 end 

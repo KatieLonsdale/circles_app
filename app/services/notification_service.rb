@@ -66,10 +66,26 @@ class NotificationService
         circle_id: circle.id
       )
     end
+
+    # create notification for circle owner if they aren't the author
+    if author.id != circle.user_id
+      Notification.create!(
+        user: circle.user,
+        notifiable: post,
+        message: message,
+        action: 'post_created',
+        circle_id: circle.id
+      )
+    end
     
     # Send push notifications to members with live notification preference and a valid token
     live_users = members.select { |m| m.user.notification_frequency == 'live' && m.user.notifications_token.present? }
     tokens = live_users.map { |m| m.user.notifications_token }
+
+    # add circle owner to tokens if they aren't the author and have a live notification preference
+    if author.id != circle.user_id && circle.user.notification_frequency == 'live' && circle.user.notifications_token.present?
+      tokens << circle.user.notifications_token
+    end
     
     return if tokens.empty?
     
