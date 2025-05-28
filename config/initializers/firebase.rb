@@ -15,12 +15,17 @@ end
 # Initialize Firebase Cloud Messaging client
 if Rails.env.production?
   # Initialize FCM client with the temp file path
+  fcm_credentials_path = create_temp_credentials_file
   FCM_CLIENT = FCM.new(
-    create_temp_credentials_file,
+    fcm_credentials_path,
     ENV['FIREBASE_PROJECT_ID']
   )
-  $firebase_credentials_file.close
-  $firebase_credentials_file.unlink
+
+  # Ensure file is cleaned up at app shutdown
+  at_exit do
+    $firebase_credentials_file.close
+    $firebase_credentials_file.unlink
+  end
 else
   # In non-production environments, use the existing approach
   FCM_CLIENT = FCM.new(
