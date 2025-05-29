@@ -4,6 +4,7 @@ class NotificationService
     author = User.find(post.author_id)
     return if author.id == comment.author_id # Don't notify if author comments on their own post
     return unless author.notification_frequency == 'live' # Only send if user wants live notifications
+    #todo: notifications should still be created if the user doesn't want push notifications
     return if author.notifications_token.blank?
     
     # Create notification message
