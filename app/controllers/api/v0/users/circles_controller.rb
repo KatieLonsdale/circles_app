@@ -27,6 +27,6 @@ class Api::V0::Users::CirclesController < ApplicationController
   end
 
   def circle_params
-    params.permit(:user_id, :name, :description)
+    params.require(:circle).permit(:user_id, :name, :description)
   end
 end
