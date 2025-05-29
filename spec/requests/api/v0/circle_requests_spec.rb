@@ -139,6 +139,20 @@ RSpec.describe 'Circles API', type: :request do
       Circle.destroy(circle.id)
     end
 
+    it 'creates a circle member for the user' do
+      user_id = @users.first.id
+      new_circle_attributes = {
+        "user_id" => user_id,
+        "name": "College Friends",
+        "description": "Friends from college"
+      }
+      post "/api/v0/users/#{user_id}/circles", params: new_circle_attributes
+
+      expect(response.status).to eq(201)
+      expect(CircleMember.count).to eq(1)
+      expect(CircleMember.where(user_id: user_id, circle_id: Circle.last.id)).to be_present
+    end
+
     it 'sends 422 Unprocessable Entity if invalid attributes are passed in' do
       user_id = @users.first.id
       new_circle_attributes = {
