@@ -28,7 +28,7 @@ RSpec.describe NotificationService do
           post_id: post.id.to_s,
           circle_id: post.circle_id.to_s,
           comment_id: comment.id.to_s,
-          type: 'comment'
+          route: 'display_post'
         }
       }
       
@@ -93,7 +93,7 @@ RSpec.describe NotificationService do
     it 'creates database notifications for all circle members except the author' do
       expect {
         NotificationService.send_post_notification(post)
-      }.to change(Notification, :count).by(members.count + 1)
+      }.to change(Notification, :count).by(members.count)
       
       members.each do |member|
         expect(member.user.notifications.count).to eq(1)
@@ -123,7 +123,7 @@ RSpec.describe NotificationService do
           data: {
             post_id: post.id.to_s,
             circle_id: circle.id.to_s,
-            type: 'post'
+            route: 'display_post'
           }
         }
         
@@ -141,7 +141,7 @@ RSpec.describe NotificationService do
       # Still create DB notifications for everyone
       expect {
         NotificationService.send_post_notification(post)
-      }.to change(Notification, :count).by(members.count + 1)
+      }.to change(Notification, :count).by(members.count)
       
       # But don't send FCM notifications
       expect(FCM_CLIENT).not_to receive(:send_notification_v1)
@@ -158,7 +158,7 @@ RSpec.describe NotificationService do
       # Still create DB notifications for everyone
       expect {
         NotificationService.send_post_notification(post)
-      }.to change(Notification, :count).by(members.count + 1)
+      }.to change(Notification, :count).by(members.count)
       
       # But don't send FCM notifications
       expect(FCM_CLIENT).not_to receive(:send_notification_v1)
@@ -178,8 +178,9 @@ RSpec.describe NotificationService do
     it 'sends notification to circle owner if they are a member' do
       owner = create(:user, notification_frequency: 'live', notifications_token: 'valid_token')
       member = create(:user, notification_frequency: 'live', notifications_token: 'valid_token')
-      circle = create(:circle, user_id: owner.id)
+      circle = create(:circle, user: owner)
       create(:circle_member, circle: circle, user: member)
+      create(:circle_member, circle: circle, user: owner)
       post = create(:post, circle: circle, author_id: member.id)
 
       NotificationService.send_post_notification(post)

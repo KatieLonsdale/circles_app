@@ -3,9 +3,6 @@ class NotificationService
     post = comment.post
     author = User.find(post.author_id)
     return if author.id == comment.author_id # Don't notify if author comments on their own post
-    return unless author.notification_frequency == 'live' # Only send if user wants live notifications
-    #todo: notifications should still be created if the user doesn't want push notifications
-    return if author.notifications_token.blank?
     
     # Create notification message
     message = "#{comment.author_display_name} commented: #{comment.comment_text.truncate(50)}"
@@ -18,6 +15,9 @@ class NotificationService
       action: 'comment_created',
       circle_id: post.circle_id # Use circle_id directly instead of circle association
     )
+
+    return if author.notifications_token.blank?
+    return unless author.notification_frequency == 'live' # Only send if user wants live notifications
     
     options = {
       notification: {
@@ -28,7 +28,7 @@ class NotificationService
         post_id: post.id.to_s,
         circle_id: post.circle_id.to_s,
         comment_id: comment.id.to_s,
-        type: 'comment'
+        route: 'display_post'
       }
     }
 
@@ -68,26 +68,10 @@ class NotificationService
       )
     end
 
-    # create notification for circle owner if they aren't the author
-    if author.id != circle.user_id
-      Notification.create!(
-        user: circle.user,
-        notifiable: post,
-        message: message,
-        action: 'post_created',
-        circle_id: circle.id
-      )
-    end
-    
     # Send push notifications to members with live notification preference and a valid token
     live_users = members.select { |m| m.user.notification_frequency == 'live' && m.user.notifications_token.present? }
     tokens = live_users.map { |m| m.user.notifications_token }
 
-    # add circle owner to tokens if they aren't the author and have a live notification preference
-    if author.id != circle.user_id && circle.user.notification_frequency == 'live' && circle.user.notifications_token.present?
-      tokens << circle.user.notifications_token
-    end
-    
     return if tokens.empty?
     
     options = {
@@ -98,7 +82,7 @@ class NotificationService
       data: {
         post_id: post.id.to_s,
         circle_id: circle.id.to_s,
-        type: 'post'
+        route: 'display_post'
       }
     }
 
@@ -125,10 +109,6 @@ class NotificationService
     requester = friendship.user
     requestee = friendship.friend
     
-    # Don't send if user has disabled notifications
-    return unless requestee.notification_frequency == 'live'
-    return if requestee.notifications_token.blank?
-    
     # Create notification message
     message = "#{requester.display_name} sent you a friend request"
     
@@ -142,6 +122,10 @@ class NotificationService
     )
     
     # Send push notification
+    # Don't send if user has disabled notifications
+    return unless requestee.notification_frequency == 'live'
+    return if requestee.notifications_token.blank?
+
     options = {
       notification: {
         title: "New Friend Request",
@@ -150,7 +134,7 @@ class NotificationService
       data: {
         friendship_id: friendship.id.to_s,
         requester_id: requester.id.to_s,
-        type: 'friend_request'
+        route: 'display_friend_request'
       }
     }
 
