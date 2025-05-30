@@ -39,7 +39,7 @@ RSpec.describe "Api::V0::Users::Notifications", type: :request do
       expect(data[1][:id].to_i).to eq(middle_notification.id)
       expect(data[2][:id].to_i).to eq(old_notification.id)
     end
-    
+
     it "filters notifications by read status when read=true" do
       user = create(:user)
       circle = create(:circle)
