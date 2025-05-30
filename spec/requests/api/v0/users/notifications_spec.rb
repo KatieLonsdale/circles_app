@@ -9,7 +9,9 @@ RSpec.describe "Api::V0::Users::Notifications", type: :request do
     it "returns all notifications for a user" do
       user = create(:user)
       circle = create(:circle)
-      notifications = create_list(:notification, 3, user: user, circle: circle)
+      comment = create(:comment, post: create(:post, circle: circle))
+      create_list(:notification, 2, user: user, circle: circle, notifiable: comment)
+      create_list(:notification, 1, user: user, circle: circle, notifiable: create(:post, circle: circle))
       
       get "/api/v0/users/#{user.id}/notifications"
       
