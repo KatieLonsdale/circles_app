@@ -18,9 +18,9 @@ class NotificationSerializer
   # the frontend will need the post id for any post related notifications
   attribute :post_id do |notification|
     if notification.notifiable_type.downcase == 'post'
-      notification.notifiable_id ? notification.notifiable_id : 'deleted'
+      notification.notifiable_id
     elsif notification.notifiable_type.downcase == 'comment'
-      notification.notifiable.post_id ? notification.notifiable.post_id : 'deleted'
+      notification.notifiable.present? ? notification.notifiable.post_id : 'deleted'
     end
   end
 end

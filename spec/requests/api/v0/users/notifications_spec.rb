@@ -39,6 +39,27 @@ RSpec.describe "Api::V0::Users::Notifications", type: :request do
       expect(data[1][:id].to_i).to eq(middle_notification.id)
       expect(data[2][:id].to_i).to eq(old_notification.id)
     end
+
+    it "returns deleted string for comment's post_id if comment's post parent is deleted" do
+      user = create(:user)
+      circle = create(:circle)
+      post = create(:post, circle: circle)
+      post_2 = create(:post, circle: circle)
+      comment = create(:comment, post: post)
+      create(:notification, user: user, circle: circle, notifiable: post)
+      create(:notification, user: user, circle: circle, notifiable: comment)
+      create(:notification, user: user, circle: circle, notifiable: post_2)
+      post.destroy
+
+      get "/api/v0/users/#{user.id}/notifications"
+      
+      expect(response).to have_http_status(:ok)
+      
+      data = JSON.parse(response.body, symbolize_names: true)[:data]
+      expect(data.count).to eq(2)
+      expect(data[0][:attributes][:post_id]).to eq(post_2.id)
+      expect(data[1][:attributes][:post_id]).to eq('deleted')
+    end
     
     it "filters notifications by read status when read=true" do
       user = create(:user)
