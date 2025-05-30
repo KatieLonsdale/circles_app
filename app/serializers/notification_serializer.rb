@@ -20,6 +20,7 @@ class NotificationSerializer
     if notification.notifiable_type.downcase == 'post'
       notification.notifiable_id
     elsif notification.notifiable_type.downcase == 'comment'
+      print(notification)
       notification.notifiable.post_id
     end
   end
