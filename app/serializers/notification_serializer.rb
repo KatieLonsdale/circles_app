@@ -20,7 +20,7 @@ class NotificationSerializer
     if notification.notifiable_type.downcase == 'post'
       notification.notifiable_id
     elsif notification.notifiable_type.downcase == 'comment'
-      notification.notifiable.present? ? notification.notifiable.post_id : 'deleted'
+      notification.notifiable.post_id
     end
   end
 end
