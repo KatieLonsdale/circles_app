@@ -35,6 +35,32 @@ RSpec.describe NotificationService do
       expect(FCM_CLIENT).to receive(:send_notification_v1).with(fcm_message)
 
       NotificationService.send_comment_notification(comment)
+
+      expect(post_author.notifications.count).to eq(1)
+      expect(post_author.notifications.first.notifiable).to eq(comment)
+      expect(post_author.notifications.first.action).to eq('comment_created')
+      expect(post_author.notifications.first.circle_name).to eq(circle.name)
+    end
+
+    it 'sends notifications to other users who have commented on the same post' do
+      other_commenter_1 = create(:user)
+      other_comment_1 = create(:comment, post: post, author_id: other_commenter_1.id, comment_text: "This is a test comment")
+      # make sure user is not notified for each comment
+      create(:comment, post: post, author_id: other_commenter_1.id, comment_text: "This is a test comment too")
+      other_commenter_2 = create(:user)
+      other_comment_2 = create(:comment, post: post, author_id: other_commenter_2.id, comment_text: "This is a test comment too")
+      
+      NotificationService.send_comment_notification(other_comment_1)
+      NotificationService.send_comment_notification(other_comment_2)
+
+      expect(other_commenter_1.notifications.count).to eq(1)
+      expect(other_commenter_1.notifications.first.notifiable).to eq(other_comment_2)
+      expect(other_commenter_1.notifications.first.action).to eq('comment_created')
+      expect(other_commenter_1.notifications.first.circle_name).to eq(circle.name)
+      expect(other_commenter_2.notifications.count).to eq(1)
+      expect(other_commenter_2.notifications.first.notifiable).to eq(other_comment_1)
+      expect(other_commenter_2.notifications.first.action).to eq('comment_created')
+      expect(other_commenter_2.notifications.first.circle_name).to eq(circle.name)
     end
 
     it 'does not send notification if post author comments on their own post' do
