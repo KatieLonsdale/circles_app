@@ -23,7 +23,7 @@ class NotificationSerializer
       elsif notification.notifiable_type.downcase == 'comment'
         notification.notifiable.post_id
       end
-    rescue
+    rescue => e
       Rails.logger.info "#{e.message}:#{notification.id}"
     end
   end
