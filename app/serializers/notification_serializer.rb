@@ -17,10 +17,14 @@ class NotificationSerializer
 
   # the frontend will need the post id for any post related notifications
   attribute :post_id do |notification|
-    if notification.notifiable_type.downcase == 'post'
-      notification.notifiable_id
-    elsif notification.notifiable_type.downcase == 'comment'
-      notification.notifiable.post_id
+    begin
+      if notification.notifiable_type.downcase == 'post'
+        notification.notifiable_id
+      elsif notification.notifiable_type.downcase == 'comment'
+        notification.notifiable.post_id
+      end
+    rescue
+      Rails.logger.info "#{e.message}:#{notification.id}"
     end
   end
 end
