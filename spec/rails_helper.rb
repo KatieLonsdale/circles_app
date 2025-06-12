@@ -78,4 +78,9 @@ RSpec.configure do |config|
       allow_any_instance_of(ApplicationController).to receive(:authorize_request).and_return(true)
     end
   end
+
+  config.before(:each) do
+    # Clear any existing mocks before each test
+    FCM_CLIENT = double('fcm_client') unless defined?(FCM_CLIENT)
+  end
 end

@@ -7,6 +7,11 @@ class Api::V0::Users::Circles::PostsController < ApplicationController
     render json: PostSerializer.new(posts)
   end
 
+  def show
+    post = @circle.posts.find(params[:id])
+    render json: PostSerializer.new(post)
+  end
+
   def create
     post = @circle.posts.create!(post_params)
     post_id = post.id
@@ -18,6 +23,9 @@ class Api::V0::Users::Circles::PostsController < ApplicationController
         upload_file(params.dig(:contents,:image), "#{@circle.id}_#{post_id}_images", content_id)
       end
     end
+    # Send notifications to circle members
+    NotificationService.send_post_notification(post)
+    
     render json: PostSerializer.new(post), status: :created
   end
 

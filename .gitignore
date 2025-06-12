@@ -34,6 +34,7 @@
 config/credentials.yml.enc
 # config/storage.yml
 
-
+#fcm
 chatterbox-notifications-3c37c1c7c66a.json
+
 Gemfile.lock

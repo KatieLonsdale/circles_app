@@ -14,7 +14,6 @@ RSpec.describe 'Sessions API', type: :request do
 
       it 'returns a token' do
         response = json
-        # require 'pry'; binding.pry
         expect(response['token']).not_to be_nil
         user_attributes = response['user']['data']['attributes']
         expect(user_attributes['display_name']).to eq(@user.display_name)

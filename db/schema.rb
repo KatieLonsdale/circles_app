@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_12_21_181453) do
+ActiveRecord::Schema[7.0].define(version: 2025_03_19_164049) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -88,6 +88,33 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_21_181453) do
     t.index ["post_id"], name: "index_contents_on_post_id"
   end
 
+  create_table "friendships", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "friend_id", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["friend_id"], name: "index_friendships_on_friend_id"
+    t.index ["user_id", "friend_id"], name: "index_friendships_on_user_id_and_friend_id", unique: true
+    t.index ["user_id"], name: "index_friendships_on_user_id"
+  end
+
+  create_table "notifications", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "notifiable_type", null: false
+    t.bigint "notifiable_id", null: false
+    t.string "message", null: false
+    t.boolean "read", default: false, null: false
+    t.string "action", null: false
+    t.bigint "circle_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["circle_id"], name: "index_notifications_on_circle_id"
+    t.index ["notifiable_type", "notifiable_id"], name: "index_notifications_on_notifiable"
+    t.index ["read"], name: "index_notifications_on_read"
+    t.index ["user_id"], name: "index_notifications_on_user_id"
+  end
+
   create_table "post_user_reactions", force: :cascade do |t|
     t.bigint "post_id", null: false
     t.integer "user_id", null: false
@@ -120,6 +147,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_21_181453) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "last_tou_acceptance"
+    t.string "notifications_token"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
@@ -130,6 +158,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_21_181453) do
   add_foreign_key "comment_user_reactions", "comments"
   add_foreign_key "comments", "posts"
   add_foreign_key "contents", "posts"
+  add_foreign_key "friendships", "users"
+  add_foreign_key "friendships", "users", column: "friend_id"
+  add_foreign_key "notifications", "circles"
+  add_foreign_key "notifications", "users"
   add_foreign_key "post_user_reactions", "posts"
   add_foreign_key "posts", "circles"
 end

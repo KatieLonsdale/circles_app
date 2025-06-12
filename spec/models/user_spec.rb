@@ -4,6 +4,14 @@ RSpec.describe User, type: :model do
   describe 'relationships' do
     it { should have_many :circles }
     it { should have_many :circle_members }
+    it { should have_many :friendships }
+    it { should have_many :friends }
+    it { should have_many :pending_friends }
+    it { should have_many :rejected_friends }
+    it { should have_many :inverse_friendships }
+    it { should have_many :inverse_friends }
+    it { should have_many :pending_inverse_friends }
+    it { should have_many :rejected_inverse_friends }
   end
 
   describe 'validations' do
@@ -76,6 +84,289 @@ RSpec.describe User, type: :model do
         expect(user_3_posts.count).to eq(0)
 
         expect(user_1_posts.first).to be_an_instance_of(Post)
+      end
+    end
+    
+    describe 'friendship methods' do
+      let(:user) { create(:user) }
+      let(:friend) { create(:user) }
+      let(:pending_friend) { create(:user) }
+      let(:inverse_friend) { create(:user) }
+      
+      before do
+        # Create a direct friendship (user -> friend)
+        create(:friendship, user: user, friend: friend, status: :accepted)
+        
+        # Create a pending friendship (user -> pending_friend)
+        create(:friendship, user: user, friend: pending_friend, status: :pending)
+        
+        # Create an inverse friendship (inverse_friend -> user)
+        create(:friendship, user: inverse_friend, friend: user, status: :accepted)
+      end
+      
+      describe '#all_friends' do
+        it 'returns all accepted friends from both directions' do
+          user2 = create(:user)
+          create(:friendship, user: user2, friend: user, status: :accepted)
+          expect(user.all_friends).to include(friend, inverse_friend)
+          expect(user.all_friends.count).to eq(3)
+        end
+      end
+      
+      describe '#all_pending_friends' do
+        it 'returns all pending friends from both directions' do
+          # Create a pending inverse friendship
+          pending_inverse = create(:user)
+          create(:friendship, user: pending_inverse, friend: user, status: :pending)
+          
+          expect(user.all_pending_friends).to include(pending_friend, pending_inverse)
+          expect(user.all_pending_friends.count).to eq(2)
+        end
+      end
+      
+      describe '#friend_request' do
+        it 'creates a new pending friendship' do
+          new_friend = create(:user)
+          
+          expect {
+            user.friend_request(new_friend)
+          }.to change(Friendship, :count).by(1)
+          
+          friendship = Friendship.last
+          expect(friendship.user).to eq(user)
+          expect(friendship.friend).to eq(new_friend)
+          expect(friendship.status).to eq('pending')
+        end
+      end
+      
+      describe '#accept_friend_request' do
+        it 'accepts a pending friend request' do
+          requester = create(:user)
+          create(:friendship, user: requester, friend: user, status: :pending)
+          
+          user.accept_friend_request(requester)
+          
+          friendship = Friendship.find_by(user: requester, friend: user)
+          expect(friendship.status).to eq('accepted')
+        end
+        
+        it 'does nothing if no request exists' do
+          non_requester = create(:user)
+          
+          expect {
+            user.accept_friend_request(non_requester)
+          }.not_to change { Friendship.count }
+        end
+      end
+      
+      describe '#reject_friend_request' do
+        it 'rejects a pending friend request' do
+          requester = create(:user)
+          create(:friendship, user: requester, friend: user, status: :pending)
+          
+          user.reject_friend_request(requester)
+          
+          friendship = Friendship.find_by(user: requester, friend: user)
+          expect(friendship.status).to eq('rejected')
+        end
+        
+        it 'does nothing if no request exists' do
+          non_requester = create(:user)
+          
+          expect {
+            user.reject_friend_request(non_requester)
+          }.not_to change { Friendship.count }
+        end
+      end
+      
+      describe '#remove_friend' do
+        it 'removes a direct friendship' do
+          expect {
+            user.remove_friend(friend)
+          }.to change(Friendship, :count).by(-1)
+          
+          expect(Friendship.find_by(user: user, friend: friend)).to be_nil
+        end
+        
+        it 'removes an inverse friendship' do
+          expect {
+            user.remove_friend(inverse_friend)
+          }.to change(Friendship, :count).by(-1)
+          
+          expect(Friendship.find_by(user: inverse_friend, friend: user)).to be_nil
+        end
+        
+        it 'does nothing if no friendship exists' do
+          non_friend = create(:user)
+          
+          expect {
+            user.remove_friend(non_friend)
+          }.not_to change { Friendship.count }
+        end
+      end
+      
+      describe '#friends_with?' do
+        it 'returns true if users are direct friends' do
+          expect(user.friends_with?(friend)).to be true
+        end
+        
+        it 'returns true if users are inverse friends' do
+          expect(user.friends_with?(inverse_friend)).to be true
+        end
+        
+        it 'returns false if users are not friends' do
+          non_friend = create(:user)
+          expect(user.friends_with?(non_friend)).to be false
+        end
+        
+        it 'returns false if friendship is pending' do
+          expect(user.friends_with?(pending_friend)).to be false
+        end
+      end
+      
+      #todo: not sure if we will use this, delete if not 3/7
+      describe '#pending_friend_request_from?' do
+        it 'returns true if there is a pending request from the user' do
+          requester = create(:user)
+          create(:friendship, user: requester, friend: user, status: :pending)
+          
+          expect(user.pending_friend_request_from?(requester)).to be true
+        end
+        
+        it 'returns false if there is no pending request from the user' do
+          non_requester = create(:user)
+          expect(user.pending_friend_request_from?(non_requester)).to be false
+        end
+      end
+      
+      #todo: not sure if we will use this, delete if not 3/7
+      describe '#pending_friend_request_to?' do
+        it 'returns true if there is a pending request to the user' do
+          expect(user.pending_friend_request_to?(pending_friend)).to be true
+        end
+        
+        it 'returns false if there is no pending request to the user' do
+          non_pending = create(:user)
+          expect(user.pending_friend_request_to?(non_pending)).to be false
+        end
+      end
+    end
+
+    describe 'notification methods' do
+      let(:user) { create(:user) }
+      let(:circle) { create(:circle) }
+      
+      before do
+        # Create a mix of read and unread notifications
+        @old_read = create(:notification, user: user, circle: circle, read: true, created_at: 3.days.ago)
+        @old_unread = create(:notification, user: user, circle: circle, read: false, created_at: 2.days.ago)
+        @recent_unread1 = create(:notification, user: user, circle: circle, read: false, created_at: 5.hours.ago)
+        @recent_unread2 = create(:notification, user: user, circle: circle, read: false, created_at: 1.hour.ago)
+        
+        # Create notifications for another user to ensure they don't interfere
+        other_user = create(:user)
+        create(:notification, user: other_user, circle: circle, read: false)
+        create(:notification, user: other_user, circle: circle, read: true)
+      end
+      
+      describe '#unread_notifications' do
+        it 'returns only unread notifications for the user in newest-first order' do
+          unread = user.unread_notifications
+          
+          expect(unread.count).to eq(3)
+          expect(unread).to include(@old_unread, @recent_unread1, @recent_unread2)
+          expect(unread).not_to include(@old_read)
+          
+          # Check the order (newest first)
+          expect(unread.to_a).to eq([@recent_unread2, @recent_unread1, @old_unread])
+        end
+        
+        it 'returns an empty collection if user has no unread notifications' do
+          # Mark all notifications as read
+          Notification.where(user: user).update_all(read: true)
+          
+          expect(user.unread_notifications).to be_empty
+        end
+      end
+      
+      describe '#unread_notifications_count' do
+        it 'returns the correct count of unread notifications' do
+          expect(user.unread_notifications_count).to eq(3)
+        end
+        
+        it 'returns 0 if user has no unread notifications' do
+          # Mark all notifications as read
+          Notification.where(user: user).update_all(read: true)
+          
+          expect(user.unread_notifications_count).to eq(0)
+        end
+      end
+      
+      describe '#mark_all_notifications_as_read!' do
+        it 'marks all unread notifications as read' do
+          # Verify initial state
+          expect(user.unread_notifications_count).to eq(3)
+          
+          # Mark all as read
+          user.mark_all_notifications_as_read!
+          
+          # Verify all notifications are now read
+          expect(user.unread_notifications_count).to eq(0)
+          expect(user.notifications.read.count).to eq(4) # All 4 notifications should be read
+          
+          # Verify that specific notifications were updated
+          [@old_unread, @recent_unread1, @recent_unread2].each do |notification|
+            expect(notification.reload.read).to eq(true)
+          end
+        end
+        
+        it 'does nothing if user has no unread notifications' do
+          # Mark all notifications as read first
+          Notification.where(user: user).update_all(read: true)
+          
+          # Call the method again
+          expect {
+            user.mark_all_notifications_as_read!
+          }.not_to change { user.notifications.pluck(:read) }
+          
+          # Verify all notifications are still read
+          expect(user.notifications.read.count).to eq(4)
+        end
+      end
+    end
+  end
+
+  describe "class methods" do
+    describe ".search" do
+      before do
+        User.destroy_all
+        @user1 = create(:user, display_name: "John Smith")
+        @user2 = create(:user, display_name: "Johnny Walker")
+        @user3 = create(:user, display_name: "Jane Doe")
+        @user4 = create(:user, display_name: "Robert Johnson")
+      end
+
+      it "returns users whose display_name contains the search query" do
+        results = User.search("John")
+        expect(results).to include(@user1, @user2, @user4)
+        expect(results.pluck(:id)).not_to include(@user3.id)
+      end
+
+      it "is case insensitive" do
+        results = User.search("john")
+        expect(results).to include(@user1, @user2, @user4)
+        expect(results.pluck(:id)).not_to include(@user3.id)
+      end
+
+      it "returns nil if query is blank" do
+        expect(User.search("")).to be_nil
+        expect(User.search(nil)).to be_nil
+      end
+
+      it "returns partial matches" do
+        results = User.search("oh")
+        expect(results).to include(@user1, @user2, @user4)
+        expect(results.pluck(:id)).not_to include(@user3.id)
       end
     end
   end

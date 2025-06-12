@@ -7,5 +7,6 @@ FactoryBot.define do
     notification_frequency { %w[live hourly daily].sample }
     created_at { Time.now }
     updated_at { Time.now }
+    notifications_token { Faker::Alphanumeric.alphanumeric(number: 20) }
   end
 end

@@ -8,6 +8,7 @@ class Api::V0::Users::CirclesController < ApplicationController
 
   def create
     circle = Circle.create!(circle_params)
+    CircleMember.create!(circle_id: circle.id, user_id: @user.id)
     render json: CircleSerializer.new(circle), status: :created
   end
 
@@ -26,6 +27,6 @@ class Api::V0::Users::CirclesController < ApplicationController
   end
 
   def circle_params
-    params.permit(:user_id, :name, :description)
+    params.require(:circle).permit(:user_id, :name, :description)
   end
 end

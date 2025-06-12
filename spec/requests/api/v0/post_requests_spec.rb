@@ -60,9 +60,11 @@ RSpec.describe 'Posts API', type: :request do
         contents = create_list(:content, rand(3), post_id: post_id)
         comments = create_list(:comment, rand(3), post_id: post_id)
       end
-      image_service = instance_double(ImageUploadService)
-      allow(image_service).to receive(:create_presigned_url).and_return("https://www.example.com/photo.jpg")
-
+      
+      # Properly stub the ImageUploadService class method
+      image_service_instance = instance_double(ImageUploadService)
+      allow(ImageUploadService).to receive(:new).and_return(image_service_instance)
+      allow(image_service_instance).to receive(:create_presigned_url).and_return("https://www.example.com/photo.jpg")
 
       get "/api/v0/users/#{user.id}/circles/#{circle_id}/posts"
 
@@ -85,7 +87,7 @@ RSpec.describe 'Posts API', type: :request do
         content_attributes = content[:attributes]
         expect(content_attributes[:video_url]).to eq(actual_content.video_url)
         expect(content_attributes).to_not have_key(:image_url)
-        expect(content_attributes[:signed_image_url]).to eq('https://www.example.com/photo.jpg').or eq(actual_content.image_url)
+        expect(content_attributes[:presigned_image_url]).to eq('https://www.example.com/photo.jpg').or eq(actual_content.image_url)
       end
       attributes[:comments][:data].each do |comment|
         actual_comment = Comment.find(comment[:id].to_i)
@@ -118,6 +120,31 @@ RSpec.describe 'Posts API', type: :request do
       expect(response.status).to eq(401)
       expect(JSON.parse(response.body, symbolize_names: true)[:errors]).
       to eq("Unauthorized")
+    end
+
+    it 'returns comments with nested replies' do
+      circle = create(:circle)
+      user = create(:user)
+      create(:circle_member, user_id: user.id, circle_id: circle.id)
+      post = create(:post, circle_id: circle.id)
+      
+      # Create a parent comment
+      parent_comment = create(:comment, post_id: post.id, parent_comment_id: nil)
+      # Create a reply to the parent comment
+      reply_comment = create(:comment, post_id: post.id, parent_comment_id: parent_comment.id)
+
+      get "/api/v0/users/#{user.id}/circles/#{circle.id}/posts"
+
+      expect(response.status).to eq(200)
+      data = JSON.parse(response.body, symbolize_names: true)[:data]
+      post = data.first
+      comments = post[:attributes][:comments][:data]
+      expect(comments.count).to eq(1)
+      expect(comments[0][:attributes][:parent_comment_id]).to be_nil
+      replies = comments[0][:attributes][:replies][:data]
+      expect(replies.count).to eq(1)
+      expect(replies[0][:attributes][:parent_comment_id]).to eq(parent_comment.id)
+      expect(replies[0][:id]).to eq(reply_comment.id.to_s)
     end
   end
 
@@ -279,6 +306,84 @@ RSpec.describe 'Posts API', type: :request do
       to eq("Unauthorized")
 
       expect(Post.count).to eq(1)
+    end
+  end
+
+  describe 'get a single post' do
+    it 'returns a single post' do
+      # create circle for test
+      circle_id = create(:circle).id
+      # grab user and add them to circle
+      user = User.all.sample
+      create(:circle_member, user_id: user.id, circle_id: circle_id)
+      # create post with contents and comments
+      post = create(:post, circle_id: circle_id)
+      contents = create_list(:content, rand(3), post_id: post.id)
+      comments = create_list(:comment, rand(3), post_id: post.id)
+
+      # post that should not be returned
+      create(:post, circle_id: circle_id)
+      
+      # Properly stub the ImageUploadService class method
+      image_service_instance = instance_double(ImageUploadService)
+      allow(ImageUploadService).to receive(:new).and_return(image_service_instance)
+      allow(image_service_instance).to receive(:create_presigned_url).and_return("https://www.example.com/photo.jpg")
+
+      get "/api/v0/users/#{user.id}/circles/#{circle_id}/posts/#{post.id}"
+
+      expect(response.status).to eq(200)
+      response_post = JSON.parse(response.body, symbolize_names: true)[:data]
+      expect(response_post[:type]).to eq("post")
+
+      attributes = response_post[:attributes]
+      expect(attributes[:id]).to eq(post.id)
+      expect(attributes[:caption]).to eq(post.caption)
+      expect(attributes[:created_at]).to eq(post.created_at.iso8601(3))
+      expect(attributes[:updated_at]).to eq(post.updated_at.iso8601(3))
+      attributes[:contents][:data].each do |content|
+        actual_content = Content.find(content[:id].to_i)
+        expect(actual_content.post_id).to eq(post.id)
+        expect(content[:type]).to eq("content")
+        content_attributes = content[:attributes]
+        expect(content_attributes[:video_url]).to eq(actual_content.video_url)
+        expect(content_attributes).to_not have_key(:image_url)
+        expect(content_attributes[:presigned_image_url]).to eq('https://www.example.com/photo.jpg').or eq(actual_content.image_url)
+      end
+      attributes[:comments][:data].each do |comment|
+        actual_comment = Comment.find(comment[:id].to_i)
+        expect(actual_comment.post_id).to eq(post.id)
+        expect(comment[:type]).to eq("comment")
+        comment_attributes = comment[:attributes]
+        expect(comment_attributes[:author_id]).to eq(actual_comment.author_id)
+        expect(comment_attributes[:parent_comment_id]).to eq(actual_comment.parent_comment_id)
+        expect(comment_attributes[:comment_text]).to eq(actual_comment.comment_text)
+        expect(comment_attributes[:created_at]).to eq(actual_comment.created_at.iso8601(3))
+        expect(comment_attributes[:updated_at]).to eq(actual_comment.updated_at.iso8601(3))
+      end
+    end
+
+    it 'sends 404 Not Found if invalid post id is passed in' do
+      circle = create(:circle)
+      user = create(:user)
+      create(:circle_member, user_id: user.id, circle_id: circle.id)
+
+      get "/api/v0/users/#{user.id}/circles/#{circle.id}/posts/999"
+
+      expect(response.status).to eq(404)
+      expect(JSON.parse(response.body, symbolize_names: true)[:errors]).
+      to include("Couldn't find Post with 'id'=999")
+    end
+
+    it 'sends 401 Unauthorized if user is not a member of the circle' do
+      circle = create(:circle)
+      post = create(:post, circle_id: circle.id)
+      user = create(:user)
+
+      get "/api/v0/users/#{user.id}/circles/#{circle.id}/posts/#{post.id}"
+
+      expect(response.status).to eq(401)
+      expect(JSON.parse(response.body, symbolize_names: true)[:errors]).
+      to eq("Unauthorized")
     end
   end
 end

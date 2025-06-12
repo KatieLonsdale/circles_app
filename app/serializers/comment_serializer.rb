@@ -11,4 +11,8 @@ class CommentSerializer
   attribute :author_display_name do |object|
     object.author_display_name
   end
+
+  attribute :replies do |object|
+    CommentSerializer.new(object.replies)
+  end
 end
