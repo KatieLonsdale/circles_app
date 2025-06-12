@@ -36,3 +36,5 @@ config/credentials.yml.enc
 
 #fcm
 chatterbox-notifications-3c37c1c7c66a.json
+
+Gemfile.lock
