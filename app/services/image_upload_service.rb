@@ -13,10 +13,7 @@ class ImageUploadService
     bucket_name = Figaro.env.S3_BUCKET_NAME
     
     # Convert byte array to an image
-    File.open(file_name, 'wb') do |file|
-      file.write(byte_array.pack('C*'))
-      file.close
-    end
+    File.open(file_name, 'wb') { |file| file.write(byte_array.pack('C*')) }
 
     begin
       # Upload the file to S3
@@ -24,7 +21,7 @@ class ImageUploadService
       s3_file = s3_client.put_object(
         bucket: bucket_name, 
         key: object_key, 
-        body: File.read(file_name), 
+        body: File.open(file_name, 'rb') { |f| f.read }, 
         content_type: "image/jpeg"
       )
       
