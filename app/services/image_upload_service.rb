@@ -51,5 +51,3 @@ class ImageUploadService
       puts "Couldn't create presigned URL for #{bucket.name}:#{object_key}. Here's why: #{e.message}"
     end
 end
-
-# TODO: these should not be class methods, add initialize method

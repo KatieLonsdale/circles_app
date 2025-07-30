@@ -1,6 +1,6 @@
 class Api::V0::UsersController < ApplicationController
   before_action :find_user, only: [:show, :update, :destroy, :newsfeed]
-  skip_before_action :authorize_request, only: [:create, :authenticate, :search]
+  skip_before_action :authorize_request, only: [:create, :authenticate]
 
   def index
     render json: UserSerializer.new(User.all)
