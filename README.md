@@ -1,5 +1,3 @@
-#Note: this readme is in progress
-
 # ChatterBox API
 Rails API backend for the ChatterBox app — user accounts, groups (“circles”), and content. This service powers the Android app: https://github.com/KatieLonsdale/circles_fe
 
